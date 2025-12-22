@@ -1,51 +1,88 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+* {
+    box-sizing: border-box;
+}
+
+body, html {
     margin: 0;
+    padding: 0;
+    height: 100vh;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.login-container {
-    background: white;
+/* Panel Izquierdo (30%) */
+.left-panel {
+    width: 30%;
+    min-width: 400px; /* Asegura legibilidad en pantallas medianas */
+    background-color: #ffffff;
     padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    width: 300px;
+    z-index: 2;
 }
 
-.form-group {
-    margin-bottom: 1rem;
+.login-form-card {
+    width: 100%;
+    max-width: 350px;
 }
 
+/* Panel Derecho (70%) */
+.right-panel {
+    width: 70%;
+    background-image: url("../images/fondo5.png"); /* Imagen local */
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.right-panel::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to top, rgba(8, 40, 68, 0.9), rgba(8, 40, 68, 0.2));
+}
+
+.overlay-content {
+    position: relative;
+    height: 100%;
+    z-index: 1;
+}
+
+/* Estilos de Componentes */
 .form-control {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    padding: 10px 15px;
+    border: 1px solid #ced4da;
+    border-radius: 8px;
 }
 
-button {
-    width: 100%;
-    padding: 10px;
-    background-color: #007bff;
-    color: white;
+.form-control:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+}
+
+.btn-warning {
+    background: linear-gradient(to right, #ffc107, #ffdb4d);
     border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    border-radius: 8px;
+    transition: transform 0.2s;
 }
 
-button:hover {
-    background-color: #0056b3;
+.btn-warning:hover {
+    transform: translateY(-1px);
+    background: #ffc107;
+}
+
+.enlace-azul {
+    color: #0d6efd !important;
+    text-decoration: none;
 }
 
 .error-msg {
-    color: red;
-    font-size: 0.9em;
-    margin-bottom: 10px;
+    color: #dc3545;
+    font-size: 0.875rem;
     text-align: center;
     min-height: 20px;
+}
+
+/* Ajuste para pantallas pequeñas */
+@media (max-width: 992px) {
+    .left-panel { width: 100%; }
+    .right-panel { display: none; }
 }

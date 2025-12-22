@@ -27,7 +27,7 @@ class LoginAnalistaView(FormView):
                 # Respuesta Exitosa con Token
                 return JsonResponse({
                     'success': True,
-                    'token': token, # El token decodificado si es string (depende versión jwt)
+                    'token': token,
                     'message': 'Inicio de sesión exitoso'
                 }, status=200)
 
