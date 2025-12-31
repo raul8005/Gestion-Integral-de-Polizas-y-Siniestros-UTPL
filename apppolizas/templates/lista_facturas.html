@@ -1,0 +1,92 @@
+{% extends 'master/masteranalista.html' %}
+{% load static %}
+
+{% block title %}Listado de Facturas{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-primary">
+            <i class="fas fa-file-invoice-dollar me-2"></i>Gestión de Facturación
+        </h3>
+        <a href="{% url 'crear_factura' %}" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Nueva Factura
+        </a>
+    </div>
+
+    <div class="card shadow border-0">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="tablaFacturas" class="table table-hover align-middle" style="width:100%">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N° Factura</th>
+                            <th>Póliza</th>
+                            <th>Emisión</th>
+                            <th>Total</th>
+                            <th>A Pagar</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for factura in facturas %}
+                        <tr>
+                            <td class="fw-bold">{{ factura.numero_factura }}</td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    {{ factura.poliza.numero_poliza }}
+                                </span>
+                            </td>
+                            <td data-order="{{ factura.fecha_emision|date:'Y-m-d' }}">
+                                {{ factura.fecha_emision|date:"d/m/Y" }}
+                            </td>
+                            <td>${{ factura.total_facturado }}</td>
+                            <td class="fw-bold text-success">${{ factura.valor_a_pagar }}</td>
+                            <td>
+                                {% if factura.mensaje_resultado == 'Factura Saldada' %}
+                                    <span class="badge bg-success">Saldada</span>
+                                {% elif factura.mensaje_resultado == 'Pagado' %}
+                                    <span class="badge bg-success">Pagado</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">{{ factura.mensaje_resultado|default:"Pendiente" }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'generar_pdf_factura' factura.id %}" target="_blank" class="btn btn-sm btn-danger" title="Descargar PDF">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#tablaFacturas').DataTable({
+            "language": {
+                "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json"
+            },
+            "responsive": true,
+            "pageLength": 10,
+            "order": [[ 2, "desc" ]] 
+        });
+    });
+</script>
+{% endblock %}

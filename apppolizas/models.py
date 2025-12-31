@@ -1,5 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+<<<<<<< HEAD
+from datetime import date
+=======
+>>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
 
 
 
@@ -103,3 +107,104 @@ class Siniestro(models.Model):
     deducible_aplicado = models.FloatField(default=0.0)
     depreciacion = models.FloatField(default=0.0)
     valor_a_pagar = models.FloatField(default=0.0) # Valor final a pagar
+<<<<<<< HEAD
+
+ 
+class Factura(models.Model):
+    # RELACIÓN: Una Póliza -> Muchas Facturas
+    poliza = models.ForeignKey(
+        'Poliza', # Usamos string para evitar problemas de orden de declaración
+        on_delete=models.CASCADE,
+        related_name='facturas'
+    )
+
+    # DATOS DE ENTRADA
+    numero_factura = models.CharField(max_length=50, unique=True)
+    documento_contable = models.CharField(max_length=50, null=True, blank=True)
+    fecha_emision = models.DateField()
+    fecha_pago = models.DateField(null=True, blank=True)
+    
+    # VALORES MONETARIOS
+    prima = models.FloatField(help_text="Valor de la prima sobre la cual se calculan impuestos")
+    retenciones = models.FloatField(default=0.0)
+
+    # CAMPOS CALCULADOS AUTOMÁTICAMENTE
+    contribucion_super = models.FloatField(default=0.0)  
+    seguro_campesino = models.FloatField(default=0.0)    
+    derechos_emision = models.FloatField(default=0.0)    
+    
+    base_imponible = models.FloatField(default=0.0)      
+    iva = models.FloatField(default=0.0)                 
+    
+    descuento_pronto_pago = models.FloatField(default=0.0)
+    total_facturado = models.FloatField(default=0.0)     
+    valor_a_pagar = models.FloatField(default=0.0)       
+
+    # ESTADO
+    mensaje_resultado = models.CharField(max_length=255, null=True, blank=True)
+    pagado = models.BooleanField(default=False)
+
+    def calcular_derechos_emision(self):
+        if self.prima <= 250:
+            return 0.50
+        elif self.prima <= 500:
+            return 1.00
+        elif self.prima <= 1000:
+            return 3.00
+        elif self.prima <= 2000:
+            return 5.00
+        elif self.prima <= 4000:
+            return 7.00
+        else:
+            return 9.00 
+
+    def calcular_descuento(self):
+        # Solo aplica si hay fecha de pago registrada
+        if self.fecha_pago and self.fecha_emision:
+            dias_diferencia = (self.fecha_pago - self.fecha_emision).days
+            # Si se paga dentro de los 20 días siguientes a la emisión
+            if dias_diferencia <= 20:
+                return self.prima * 0.05
+        return 0.0
+
+    def save(self, *args, **kwargs):
+        # 1. Calcular Contribuciones Legales
+        self.contribucion_super = round(self.prima * 0.035, 2)
+        self.seguro_campesino = round(self.prima * 0.005, 2)
+
+        # 2. Calcular Derechos de Emisión
+        self.derechos_emision = self.calcular_derechos_emision()
+
+        # 3. Calcular Base Imponible
+        self.base_imponible = round(
+            self.prima + self.contribucion_super + self.seguro_campesino + self.derechos_emision, 2
+        )
+
+        # 4. Calcular IVA (15%)
+        self.iva = round(self.base_imponible * 0.15, 2)
+
+        # 5. Calcular Total Facturado
+        self.total_facturado = round(self.base_imponible + self.iva, 2)
+
+        # 6. Calcular Descuento Pronto Pago
+        self.descuento_pronto_pago = round(self.calcular_descuento(), 2)
+
+        # 7. Calcular Valor Final a Pagar
+        self.valor_a_pagar = round(
+            self.total_facturado - self.retenciones - self.descuento_pronto_pago, 2
+        )
+
+        # Actualizar estado de mensaje
+        if self.valor_a_pagar <= 0:
+             self.mensaje_resultado = "Factura Saldada"
+        elif self.pagado:
+             self.mensaje_resultado = "Pagado"
+        else:
+             self.mensaje_resultado = "Pendiente de Pago"
+        
+        super(Factura, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Factura {self.numero_factura} - Póliza {self.poliza}"
+=======
+>>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b

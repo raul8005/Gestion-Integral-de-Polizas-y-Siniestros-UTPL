@@ -1,0 +1,73 @@
+{% extends 'master/masteranalista.html' %}
+{% load static %}
+
+{% block title %}Registrar Factura{% endblock %}
+
+{% block admin_content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>Registrar Nueva Factura</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                Por favor corrige los errores del formulario.
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Póliza Asociada</label>
+                            {{ form.poliza }}
+                            <div class="form-text">Selecciona la póliza a la que pertenece esta factura.</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Número de Factura</label>
+                                {{ form.numero_factura }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Documento Contable</label>
+                                {{ form.documento_contable }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Fecha de Emisión</label>
+                                {{ form.fecha_emision }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Fecha de Pago (Opcional)</label>
+                                {{ form.fecha_pago }}
+                                <div class="form-text text-success">
+                                    <i class="fas fa-info-circle"></i> Si pagas antes de 20 días, aplica 5% de descuento.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Valor de la Prima (Base)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                {{ form.prima }}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'lista_facturas' %}" class="btn btn-secondary me-md-2">Cancelar</a>
+                            <button type="submit" class="btn btn-success">Guardar y Calcular</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -7,8 +7,13 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 
 from datetime import date
+<<<<<<< HEAD
+from .models import Usuario, Poliza, Siniestro, Factura
+from .repositories import UsuarioRepository, PolizaRepository, SiniestroRepository, FacturaRepository
+=======
 from .models import Usuario, Poliza, Siniestro
 from .repositories import UsuarioRepository, PolizaRepository, SiniestroRepository
+>>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
 
 
 class AuthService:
@@ -144,4 +149,29 @@ class SiniestroService:
     @staticmethod
     def listar_por_poliza(poliza_id):
         """Lógica de negocio para obtener siniestros de una póliza específica"""
+<<<<<<< HEAD
         return SiniestroRepository.get_por_poliza(poliza_id)
+    
+
+class FacturaService:
+    """Servicio para gestión de Facturación y Cobranzas"""
+
+    @staticmethod
+    def listar_facturas():
+        return FacturaRepository.get_all()
+
+    @staticmethod
+    def crear_factura(data):
+        # Aquí podrías agregar validaciones extra si quisieras antes de crear
+        # Por ahora, delegamos al repositorio
+        return FacturaRepository.create(data)
+
+    @staticmethod
+    def obtener_factura(factura_id):
+        factura = FacturaRepository.get_by_id(factura_id)
+        if not factura:
+            raise ValidationError("La factura solicitada no existe")
+        return factura
+=======
+        return SiniestroRepository.get_por_poliza(poliza_id)
+>>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b

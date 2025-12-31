@@ -4,6 +4,24 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
+<<<<<<< HEAD
+from django.http import JsonResponse, HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import get_template
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView, View, DetailView
+
+from xhtml2pdf import pisa
+
+from apppolizas.models import Poliza, Siniestro, Factura
+from django.views.generic import DetailView
+
+
+from .forms import PolizaForm, SiniestroPorPolizaForm, SiniestroForm, SiniestroEditForm, FacturaForm
+from .repositories import SiniestroRepository, UsuarioRepository
+from .services import AuthService, PolizaService, SiniestroService, FacturaService
+=======
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
@@ -17,6 +35,7 @@ from django.views.generic import DetailView
 from .forms import PolizaForm, SiniestroPorPolizaForm, SiniestroForm, SiniestroEditForm
 from .repositories import SiniestroRepository, UsuarioRepository
 from .services import AuthService, PolizaService, SiniestroService
+>>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
 
 
 # =====================================================
@@ -421,3 +440,70 @@ class SiniestroDeleteView(LoginRequiredMixin, View):
         siniestro.delete()
         messages.success(request, 'Siniestro eliminado correctamente')
         return redirect('siniestros')
+<<<<<<< HEAD
+
+#------------------------------------------------------
+# Factura
+#------------------------------------------------------
+
+# 1. Listar Facturas
+def lista_facturas(request):
+    """
+    Muestra el historial usando el Servicio (Capa de Negocio).
+    """
+    # YA NO USAMOS: Factura.objects.all()
+    # USAMOS EL SERVICIO:
+    facturas = FacturaService.listar_facturas()
+    return render(request, 'lista_facturas.html', {'facturas': facturas})
+
+# 2. Registrar Nueva Factura
+def crear_factura(request):
+    """
+    Crea la factura enviando los datos limpios al Servicio.
+    """
+    if request.method == 'POST':
+        form = FacturaForm(request.POST)
+        if form.is_valid():
+            try:
+                # YA NO USAMOS: form.save()
+                # USAMOS EL SERVICIO pasando los datos limpios (diccionario):
+                FacturaService.crear_factura(form.cleaned_data)
+                
+                messages.success(request, "Factura registrada y calculada correctamente.")
+                return redirect('lista_facturas')
+            except ValidationError as e:
+                messages.error(request, f"Error de validación: {e}")
+            except Exception as e:
+                messages.error(request, f"Ocurrió un error inesperado: {e}")
+        else:
+            messages.error(request, "Error en el formulario. Verifica los datos.")
+    else:
+        form = FacturaForm()
+    
+    return render(request, 'form_factura.html', {'form': form})
+
+# 3. Generar PDF de Factura
+def generar_pdf_factura(request, factura_id):
+    # Usamos el servicio para obtener la factura (incluye validación de existencia)
+    try:
+        factura = FacturaService.obtener_factura(factura_id)
+    except ValidationError:
+        return HttpResponse("La factura no existe", status=404)
+    
+    template_path = 'factura_pdf.html'
+    context = {'factura': factura}
+    
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="factura_{factura.numero_factura}.pdf"'
+    
+    template = get_template(template_path)
+    html = template.render(context)
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    
+    if pisa_status.err:
+       return HttpResponse(f'Error al generar PDF: <pre>{html}</pre>')
+    
+    return response
+=======
+>>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b

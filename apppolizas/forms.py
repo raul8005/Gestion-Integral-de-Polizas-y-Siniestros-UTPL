@@ -1,5 +1,9 @@
 from django import forms
+<<<<<<< HEAD
+from .models import Poliza, Siniestro, Factura
+=======
 from .models import Poliza, Siniestro
+>>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -128,3 +132,25 @@ class SiniestroEditForm(forms.ModelForm):
             'depreciacion': forms.NumberInput(attrs={'class': 'form-control'}),
             'valor_a_pagar': forms.NumberInput(attrs={'class': 'form-control'}),
         }
+<<<<<<< HEAD
+
+# Factura form
+class FacturaForm(forms.ModelForm):
+    class Meta:
+        model = Factura
+        fields = ['poliza', 'numero_factura', 'documento_contable', 'fecha_emision', 'fecha_pago', 'prima']
+        
+        widgets = {
+            'fecha_emision': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'fecha_pago': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'poliza': forms.Select(attrs={'class': 'form-select'}),
+            'numero_factura': forms.TextInput(attrs={'class': 'form-control'}),
+            'documento_contable': forms.TextInput(attrs={'class': 'form-control'}),
+            'prima': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+        labels = {
+            'prima': 'Valor de la Prima (Base)',
+            'poliza': 'Seleccionar Póliza Asociada'
+        }
+=======
+>>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
