@@ -1,9 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-<<<<<<< HEAD
 from datetime import date
-=======
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
 
 
 
@@ -107,7 +104,6 @@ class Siniestro(models.Model):
     deducible_aplicado = models.FloatField(default=0.0)
     depreciacion = models.FloatField(default=0.0)
     valor_a_pagar = models.FloatField(default=0.0) # Valor final a pagar
-<<<<<<< HEAD
 
  
 class Factura(models.Model):
@@ -206,5 +202,33 @@ class Factura(models.Model):
 
     def __str__(self):
         return f"Factura {self.numero_factura} - Póliza {self.poliza}"
-=======
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
+
+
+
+
+# Documentos adjuntos a siniestros
+
+def ruta_documento_siniestro(instance, filename):
+    # Esto genera rutas como: siniestros/ID_123/evidencia_policial.pdf
+    return f'siniestros/ID_{instance.siniestro.id}/{filename}'
+
+class DocumentoSiniestro(models.Model):
+    TIPO_DOCUMENTO = [
+        ('INFORME', 'Informe del Siniestro'),
+        ('FOTOS', 'Fotografías del Siniestro'),
+        ('CEDULA', 'Documentos Personales'),
+        ('FACTURA', 'Facturas de Gastos'),
+        ('OTRO', 'Otros Documentos'),
+    ]
+
+    siniestro = models.ForeignKey(Siniestro, on_delete=models.CASCADE, related_name='documentos')
+    archivo = models.FileField(upload_to=ruta_documento_siniestro)
+    tipo = models.CharField(max_length=20, choices=TIPO_DOCUMENTO)
+    descripcion = models.CharField(max_length=200, blank=True, null=True)
+    fecha_subida = models.DateTimeField(auto_now_add=True)
+    
+    # Usuario que subió el archivo (para auditoría)
+    subido_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True)
+
+    def __str__(self):
+        return f"{self.get_tipo_display()} - {self.siniestro.id}"

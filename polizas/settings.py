@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apppolizas',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -79,11 +80,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',   
         'NAME': 'polizas',                      
         'USER': 'root',             
-<<<<<<< HEAD
-        'PASSWORD': 'jose2004',      
-=======
-        'PASSWORD': 'UTPL2023',      
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
+        'PASSWORD': '123456789',      
         'HOST': 'localhost',                    
         'PORT': '3306',                         
         'OPTIONS': {
@@ -132,3 +129,46 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'apppolizas.Usuario'
 
 LOGIN_URL = '/'
+
+
+
+# Configuración para conectar con tu MinIO local
+AWS_ACCESS_KEY_ID = 'admin'
+AWS_SECRET_ACCESS_KEY = 'password123'
+AWS_STORAGE_BUCKET_NAME = 'expedientes-siniestros'
+AWS_S3_ENDPOINT_URL = 'http://127.0.0.1:9000' # La API de MinIO corre en el 9000
+AWS_S3_REGION_NAME = 'us-east-1' 
+AWS_S3_SIGNATURE_VERSION = 's3v4'
+
+# Para que MinIO no intente validar certificados SSL (ya que es local)
+AWS_S3_VERIFY = False 
+
+# Indicar a Django que use S3/MinIO para archivos MEDIA
+# DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
+        "OPTIONS": {
+            "access_key": "admin",
+            "secret_key": "password123",
+            "bucket_name": "expedientes-siniestros",
+            "endpoint_url": "http://127.0.0.1:9000",
+            "region_name": "us-east-1",
+            "use_ssl": False,
+            "verify": False,
+        },
+    },
+
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
+
+# URL para que el navegador pueda mostrar las fotos/PDFs
+MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
+
+# Fuerza a que no se añadan prefijos locales de Windows
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None  # Importante para evitar errores de permisos al subir
+AWS_S3_CUSTOM_DOMAIN = None

@@ -1,9 +1,5 @@
 from django import forms
-<<<<<<< HEAD
 from .models import Poliza, Siniestro, Factura
-=======
-from .models import Poliza, Siniestro
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -132,7 +128,6 @@ class SiniestroEditForm(forms.ModelForm):
             'depreciacion': forms.NumberInput(attrs={'class': 'form-control'}),
             'valor_a_pagar': forms.NumberInput(attrs={'class': 'form-control'}),
         }
-<<<<<<< HEAD
 
 # Factura form
 class FacturaForm(forms.ModelForm):
@@ -152,5 +147,17 @@ class FacturaForm(forms.ModelForm):
             'prima': 'Valor de la Prima (Base)',
             'poliza': 'Seleccionar Póliza Asociada'
         }
-=======
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
+
+
+# Formulario para documentos de siniestro
+from .models import DocumentoSiniestro
+
+class DocumentoSiniestroForm(forms.ModelForm):
+    class Meta:
+        model = DocumentoSiniestro
+        fields = ['tipo', 'archivo', 'descripcion']
+        widgets = {
+            'tipo': forms.Select(attrs={'class': 'form-select'}),
+            'archivo': forms.FileInput(attrs={'class': 'form-control'}),
+            'descripcion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Opcional'}),
+        }

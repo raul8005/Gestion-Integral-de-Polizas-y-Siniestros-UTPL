@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-from .models import Usuario, Poliza, Siniestro, Factura
-=======
-from .models import Usuario, Poliza, Siniestro
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
+from .models import Usuario, Poliza, Siniestro, Factura, DocumentoSiniestro
 
 
 class UsuarioRepository:
@@ -109,7 +105,6 @@ class SiniestroRepository:
     def get_por_poliza(poliza_id):
         """Consulta directa al ORM filtrando por ID de póliza"""
         return Siniestro.objects.filter(poliza_id=poliza_id).order_by('-fecha_siniestro')
-<<<<<<< HEAD
     
     
 class FacturaRepository:
@@ -132,5 +127,34 @@ class FacturaRepository:
         # Al usar create(), Django llama internamente a save(), 
         # por lo que tus cálculos automáticos (IVA, descuentos) SE EJECUTARÁN.
         return Factura.objects.create(**data)
-=======
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
+
+
+
+
+# DocumentoSiniestroRepository
+
+class DocumentoRepository:
+    
+    @staticmethod
+    def create(data, archivo, usuario):
+        """
+        Crea el registro en BD. 
+        Nota: Django maneja la subida a MinIO automáticamente al llamar a .create() 
+        gracias a la configuración del settings.py.
+        """
+        return DocumentoSiniestro.objects.create(
+            siniestro=data['siniestro'],
+            tipo=data['tipo'],
+            descripcion=data.get('descripcion', ''),
+            archivo=archivo, # El objeto archivo en memoria
+            subido_por=usuario
+        )
+
+    @staticmethod
+    def get_by_siniestro(siniestro_id):
+        return DocumentoSiniestro.objects.filter(siniestro_id=siniestro_id).order_by('-fecha_subida')
+
+    @staticmethod
+    def delete(documento_id):
+        # Al borrar el registro, django-storages también intenta borrar el archivo en MinIO
+        return DocumentoSiniestro.objects.filter(id=documento_id).delete()

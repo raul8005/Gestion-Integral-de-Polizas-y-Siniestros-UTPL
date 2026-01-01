@@ -41,6 +41,7 @@
 
     <div class="row">
         <div class="col-lg-8">
+            
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header bg-transparent border-0 pt-4 px-4">
                     <h5 class="fw-bold"><i class="fas fa-file-invoice-dollar text-primary me-2"></i>Detalles del Evento</h5>
@@ -79,26 +80,71 @@
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white pt-4 px-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center pt-4 px-4 border-0">
+                    <h5 class="fw-bold mb-0"><i class="fas fa-folder-open text-primary me-2"></i>Expediente Digital</h5>
+                    {% if siniestro.estado_tramite != 'LIQUIDADO' %}
+                    <button class="btn btn-sm btn-primary px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalSubirDocumento">
+                        <i class="fas fa-upload me-1"></i> Subir Archivo
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body px-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light text-muted small">
+                                <tr>
+                                    <th>TIPO</th>
+                                    <th>DESCRIPCIÓN</th>
+                                    <th>FECHA</th>
+                                    <th class="text-center">ARCHIVO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for doc in documentos %}
+                                <tr>
+                                    <td><span class="badge bg-info-subtle text-info border border-info-subtle px-2">{{ doc.get_tipo_display }}</span></td>
+                                    <td class="small">{{ doc.descripcion|default:"---" }}</td>
+                                    <td class="small text-muted">{{ doc.fecha_subida|date:"d/m/Y H:i" }}</td>
+                                    <td class="text-center">
+                                        <a href="{{ doc.archivo.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                            <i class="fas fa-external-link-alt me-1"></i> Abrir
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        <i class="fas fa-info-circle me-1"></i> No hay evidencias digitales cargadas.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header bg-white pt-4 px-4 border-0">
                     <h5 class="fw-bold"><i class="fas fa-history text-primary me-2"></i>Otros Siniestros de esta Póliza</h5>
                 </div>
-                <div class="card-body">
+                <div class="card-body px-4">
                     <div class="table-responsive">
                         <table id="tablaRelacionados" class="table table-hover align-middle w-100">
-                            <thead class="table-light">
+                            <thead class="table-light text-muted small">
                                 <tr>
                                     <th>ID</th>
-                                    <th>Fecha</th>
-                                    <th>Tipo</th>
-                                    <th>Estado</th>
-                                    <th>Acción</th>
+                                    <th>FECHA</th>
+                                    <th>TIPO</th>
+                                    <th>ESTADO</th>
+                                    <th>ACCIÓN</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for item in siniestros_relacionados %}
                                 <tr>
-                                    <td>#{{ item.id }}</td>
+                                    <td class="fw-bold">#{{ item.id }}</td>
                                     <td>{{ item.fecha_siniestro|date:"Y-m-d" }}</td>
                                     <td>{{ item.tipo_siniestro }}</td>
                                     <td>
@@ -107,7 +153,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{% url 'siniestro_detail' item.id %}" class="btn btn-sm btn-outline-primary">Ver</a>
+                                        <a href="{% url 'siniestro_detail' item.id %}" class="btn btn-sm btn-outline-secondary">Ver</a>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -148,6 +194,39 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalSubirDocumento" tabindex="-1" aria-labelledby="modalSubirDocumentoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title fw-bold" id="modalSubirDocumentoLabel"><i class="fas fa-cloud-upload-alt me-2"></i>Cargar Evidencia</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'subir_evidencia' siniestro.id %}" method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tipo de Documento</label>
+                        {{ form_documento.tipo }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">Archivo (PDF, Imagen)</label>
+                        {{ form_documento.archivo }}
+                        <div class="form-text">Tamaño máximo: 5MB. Formatos: PDF, JPG, PNG.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nota aclaratoria</label>
+                        {{ form_documento.descripcion }}
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary px-4">Subir a MinIO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -163,7 +242,7 @@
             },
             "pageLength": 5,
             "lengthMenu": [5, 10, 25],
-            "searching": true, // Desactivar búsqueda para que sea más limpio si son pocos
+            "searching": true,
             "info": false
         });
     });

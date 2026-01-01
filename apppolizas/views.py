@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
-<<<<<<< HEAD
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import get_template
@@ -18,24 +17,9 @@ from apppolizas.models import Poliza, Siniestro, Factura
 from django.views.generic import DetailView
 
 
-from .forms import PolizaForm, SiniestroPorPolizaForm, SiniestroForm, SiniestroEditForm, FacturaForm
+from .forms import PolizaForm, SiniestroPorPolizaForm, SiniestroForm, SiniestroEditForm, FacturaForm, DocumentoSiniestroForm
 from .repositories import SiniestroRepository, UsuarioRepository
-from .services import AuthService, PolizaService, SiniestroService, FacturaService
-=======
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView, View
-
-from apppolizas.models import Poliza, Siniestro
-from django.views.generic import DetailView
-
-
-from .forms import PolizaForm, SiniestroPorPolizaForm, SiniestroForm, SiniestroEditForm
-from .repositories import SiniestroRepository, UsuarioRepository
-from .services import AuthService, PolizaService, SiniestroService
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
+from .services import AuthService, PolizaService, SiniestroService, FacturaService, DocumentoService
 
 
 # =====================================================
@@ -378,10 +362,19 @@ class SiniestroDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Obtenemos otros siniestros de la misma póliza, excluyendo el actual
+        
+        # --- Tu lógica actual ---
         context['siniestros_relacionados'] = SiniestroService.listar_por_poliza(
             self.object.poliza.id
         ).exclude(id=self.object.id)
+
+        # --- Nueva lógica para Expediente Digital ---
+        # 1. Agregamos el formulario para subir archivos (debes importarlo)
+        context['form_documento'] = DocumentoSiniestroForm()
+        
+        # 2. Listamos los documentos guardados en MinIO para este siniestro
+        context['documentos'] = DocumentoService.listar_evidencias(self.object.id)
+        
         return context
 
     def dispatch(self, request, *args, **kwargs):
@@ -440,7 +433,6 @@ class SiniestroDeleteView(LoginRequiredMixin, View):
         siniestro.delete()
         messages.success(request, 'Siniestro eliminado correctamente')
         return redirect('siniestros')
-<<<<<<< HEAD
 
 #------------------------------------------------------
 # Factura
@@ -505,5 +497,32 @@ def generar_pdf_factura(request, factura_id):
        return HttpResponse(f'Error al generar PDF: <pre>{html}</pre>')
     
     return response
-=======
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
+
+
+
+
+
+# Vistas para gestión de documentos de siniestro
+class SubirEvidenciaView(LoginRequiredMixin, View):
+    
+    def post(self, request, siniestro_id):
+        form = DocumentoSiniestroForm(request.POST, request.FILES) # ¡Importante request.FILES!
+        
+        if form.is_valid():
+            try:
+                DocumentoService.subir_evidencia(
+                    siniestro_id=siniestro_id,
+                    data_form=form.cleaned_data,
+                    archivo=request.FILES['archivo'],
+                    usuario=request.user
+                )
+                messages.success(request, "Documento subido correctamente a MinIO.")
+            except ValidationError as e:
+                messages.error(request, str(e))
+            except Exception as e:
+                messages.error(request, "Error al subir el archivo.")
+        else:
+            messages.error(request, "Error en el formulario.")
+            
+        # Redirigir de vuelta al detalle del siniestro
+        return redirect('siniestro_detail', pk=siniestro_id)

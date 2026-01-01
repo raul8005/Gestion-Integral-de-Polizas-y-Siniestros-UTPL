@@ -7,13 +7,10 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 
 from datetime import date
-<<<<<<< HEAD
 from .models import Usuario, Poliza, Siniestro, Factura
-from .repositories import UsuarioRepository, PolizaRepository, SiniestroRepository, FacturaRepository
-=======
-from .models import Usuario, Poliza, Siniestro
-from .repositories import UsuarioRepository, PolizaRepository, SiniestroRepository
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
+from .repositories import UsuarioRepository, PolizaRepository, SiniestroRepository, FacturaRepository, DocumentoRepository
+
+import os
 
 
 class AuthService:
@@ -149,7 +146,6 @@ class SiniestroService:
     @staticmethod
     def listar_por_poliza(poliza_id):
         """Lógica de negocio para obtener siniestros de una póliza específica"""
-<<<<<<< HEAD
         return SiniestroRepository.get_por_poliza(poliza_id)
     
 
@@ -172,6 +168,53 @@ class FacturaService:
         if not factura:
             raise ValidationError("La factura solicitada no existe")
         return factura
-=======
-        return SiniestroRepository.get_por_poliza(poliza_id)
->>>>>>> 023cea205f0f0fa6e2fc75d4401f28287856a05b
+
+
+
+
+
+  # Servicio para gestión de Documentos de Siniestros
+
+class DocumentoService:
+        
+    # Extensiones permitidas (Seguridad)
+    EXTENSIONES_VALIDAS = ['.pdf', '.jpg', '.jpeg', '.png']
+    # Tamaño máximo (5MB)
+    MAX_TAMANO_MB = 5 * 1024 * 1024 
+
+    @staticmethod
+    def subir_evidencia(siniestro_id, data_form, archivo, usuario):
+        """
+        Lógica de negocio para validar y subir un archivo.
+        """
+        # 1. Validar existencia del siniestro
+        siniestro = SiniestroRepository.get_by_id(siniestro_id)
+        if not siniestro:
+            raise ValidationError("El siniestro no existe.")
+
+        # 2. Validar que el siniestro no esté cerrado (Regla de negocio)
+        if siniestro.estado_tramite == 'LIQUIDADO':
+            raise ValidationError("No se pueden agregar documentos a un siniestro liquidado.")
+
+        # 3. Validar extensión del archivo
+        ext = os.path.splitext(archivo.name)[1].lower()
+        if ext not in DocumentoService.EXTENSIONES_VALIDAS:
+            raise ValidationError(f"Formato no permitido. Use: {', '.join(DocumentoService.EXTENSIONES_VALIDAS)}")
+
+        # 4. Validar tamaño
+        if archivo.size > DocumentoService.MAX_TAMANO_MB:
+            raise ValidationError("El archivo es demasiado pesado. Máximo 5MB.")
+
+        # 5. Preparar datos para el repositorio
+        datos_limpios = {
+            'siniestro': siniestro,
+            'tipo': data_form['tipo'],
+            'descripcion': data_form.get('descripcion')
+        }
+
+        # 6. Llamar al repositorio
+        return DocumentoRepository.create(datos_limpios, archivo, usuario)
+
+    @staticmethod
+    def listar_evidencias(siniestro_id):
+        return DocumentoRepository.get_by_siniestro(siniestro_id)
