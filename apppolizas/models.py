@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from datetime import date
-
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 
 class Usuario(AbstractUser):
@@ -232,3 +233,18 @@ class DocumentoSiniestro(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_display()} - {self.siniestro.id}"
+    
+
+# ========================================================
+# SEÑALES PARA LIMPIEZA DE ARCHIVOS EN MINIO
+# ========================================================
+
+@receiver(post_delete, sender=DocumentoSiniestro)
+def eliminar_archivo_de_minio(sender, instance, **kwargs):
+    """
+    Se ejecuta automáticamente justo después de que se borra un 
+    registro de la tabla DocumentoSiniestro.
+    """
+    if instance.archivo:
+        # Esto borra el archivo físico del bucket de MinIO
+        instance.archivo.delete(save=False)

@@ -11,9 +11,10 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, View, DetailView
 
+
 from xhtml2pdf import pisa
 
-from apppolizas.models import Poliza, Siniestro, Factura
+from apppolizas.models import Poliza, Siniestro, Factura, DocumentoSiniestro
 from django.views.generic import DetailView
 
 
@@ -494,7 +495,7 @@ def generar_pdf_factura(request, factura_id):
     pisa_status = pisa.CreatePDF(html, dest=response)
     
     if pisa_status.err:
-       return HttpResponse(f'Error al generar PDF: <pre>{html}</pre>')
+        return HttpResponse(f'Error al generar PDF: <pre>{html}</pre>')
     
     return response
 
@@ -525,4 +526,24 @@ class SubirEvidenciaView(LoginRequiredMixin, View):
             messages.error(request, "Error en el formulario.")
             
         # Redirigir de vuelta al detalle del siniestro
+        return redirect('siniestro_detail', pk=siniestro_id)
+    
+
+class SiniestroDeleteEvidenciaView(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.rol != 'analista':
+            return redirect('dashboard_analista')
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request, pk):
+        # Buscamos el documento o damos error 404 si no existe
+        documento = get_object_or_404(DocumentoSiniestro, pk=pk)
+        
+        # Guardamos el ID del siniestro para volver ahí después de borrar
+        siniestro_id = documento.siniestro.id
+        
+        # Eliminamos el registro (y el archivo si está configurado en signals)
+        documento.delete()
+        
+        messages.success(request, 'Documento eliminado correctamente del expediente.')
         return redirect('siniestro_detail', pk=siniestro_id)

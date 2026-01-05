@@ -18,6 +18,7 @@ from .views import (
     crear_factura,
     generar_pdf_factura,
     SubirEvidenciaView,
+    SiniestroDeleteEvidenciaView
 )
 
 urlpatterns = [
@@ -56,4 +57,5 @@ urlpatterns = [
 
     # Subida de evidencia para siniestros
     path('siniestros/<int:siniestro_id>/subir-evidencia/', SubirEvidenciaView.as_view(), name='subir_evidencia'),
+    path('documentos/<int:pk>/eliminar/', SiniestroDeleteEvidenciaView.as_view(), name='eliminar_evidencia')
 ]
