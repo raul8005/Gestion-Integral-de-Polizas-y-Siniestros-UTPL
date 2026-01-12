@@ -131,6 +131,15 @@ body {
     background-color: #f8f9fa;
     display: flex;
     flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.admin-scroll-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 5px;
+    padding-bottom: 20px;
 }
 
 .main-content-admin .top-bar-admin {

@@ -86,78 +86,112 @@ body {
 
 /* Sidebar nav */
 .navbar-menu {
-    width: 100%; /* Asegura que la navegación ocupe todo el ancho del sidebar */
-    flex-grow: 1; /* Permite que el menú crezca para ocupar espacio entre el usuario y el botón */
+    width: 100%;
+    flex-grow: 1;
+    margin-top: 20px;
 }
 
 .navbar-menu ul {
     list-style: none;
     padding: 0;
-    width: 100%; /* Asegura que la lista ocupe todo el ancho de la navegación */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; /* Espacio entre items */
 }
 
 .navbar-menu ul li {
-    margin-bottom: 20px;
-    position: relative;
-    width: 100%; /* Asegura que cada item ocupe todo el ancho de la lista */
+    width: 100%;
 }
 
 .navbar-menu ul li a {
     display: flex;
     align-items: center;
-    padding: 12px 20px;
-    font-size: 18px;
-    color: white;
+    padding: 15px 25px; /* Más padding para click area */
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.8); /* Texto un poco menos brillante por defecto */
     text-decoration: none;
-    /* CAMBIO CLAVE: Redondea solo las esquinas superior izquierda y inferior izquierda */
-    border-radius: 15px 0 0 15px; /* Superior-izq, Superior-der, Inferior-der, Inferior-izq */
-    transition: background 0.3s ease;
-    width: 100%; /* Asegura que el enlace ocupe todo el ancho del li */
-    box-sizing: border-box; /* Incluye padding en el cálculo del ancho */
+    border-radius: 12px 0 0 12px;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+    position: relative;
 }
-
-
 
 .icono-svg {
-    width: 24px;
-    height: 24px;
-    margin-right: 12px;
+    width: 22px;
+    height: 22px;
+    margin-right: 15px;
     filter: brightness(0) invert(1);
-    opacity: 0.8;
-    transition: transform 0.2s ease;
+    opacity: 0.7;
+    transition: all 0.3s ease;
 }
 
-a:hover .icono-svg {
+/* Hover Effect */
+.navbar-menu ul li a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    padding-left: 30px; /* Sutil movimiento a la derecha */
+}
+
+.navbar-menu ul li a:hover .icono-svg {
+    opacity: 1;
     transform: scale(1.1);
 }
 
+/* Active State */
 .navbar-menu ul li.activo a {
     background-color: white;
     color: #1D1959;
-    font-weight: bold;
+    font-weight: 600;
+    box-shadow: -5px 5px 15px rgba(0, 0, 0, 0.2); /* Sombra para resaltar */
 }
 
 .navbar-menu ul li.activo .icono-svg {
-    filter: none;
+    filter: none; /* Color original del icono si es SVG color, o negro si es mask */
     opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Indicador visual extra para activo */
+.navbar-menu ul li.activo a::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 5px;
+    height: 60%;
+    background-color: #1D1959;
+    border-radius: 5px 0 0 5px;
+    opacity: 0.2;
 }
 
 /* Botón inferior */
 .boton {
-    width: 70%;
-    padding: 10px;
-    border: 2px solid white;
-    background: transparent;
-    border-radius: 25px;
+    width: 80%;
+    padding: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
     color: white;
-    font-size: 16px;
+    font-size: 15px;
+    font-weight: 500;
     cursor: pointer;
     text-align: center;
-    transition: background 0.3s ease;
+    transition: all 0.3s ease;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
 
 .boton:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: white;
+    color: #1D1959;
+    border-color: white;
+    transform: translateY(-2px);
 }
 
 /* Footer (si está fuera del layout-wrapper, ajusta su posición) */

@@ -85,6 +85,12 @@ class DashboardAdminView(LoginRequiredMixin, TemplateView):
             return redirect('dashboard_analista')
         return super().dispatch(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_usuarios'] = UsuarioRepository.get_all_usuarios().count()
+        context['total_polizas'] = PolizaService.listar_polizas().count()
+        return context
+
 
 class AdminUsuariosView(LoginRequiredMixin, TemplateView):
     template_name = 'administrador/usuarios.html'
@@ -110,6 +116,9 @@ class DashboardAnalistaView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['total_activas'] = PolizaService.contar_polizas_activas()
         context['total_vencidas'] = PolizaService.contar_polizas_vencidas()
+        context['total_siniestros'] = SiniestroService.listar_todos().count()
+        context['total_facturas'] = FacturaService.listar_facturas().count()
+        context['ultimos_siniestros'] = SiniestroService.listar_todos().order_by('-fecha_siniestro')[:5]
         return context
 
 # =====================================================

@@ -4,29 +4,143 @@
 {% block title %}Dashboard Administrador{% endblock %}
 
 {% block admin_content %}
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h3 class="fw-bold">Bienvenido, Administrador</h3>
-            <p class="text-muted">Resumen general del sistema.</p>
+<div class="container-fluid pb-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Panel de Administración</h3>
+            <p class="text-muted mb-0">Visión global y gestión de usuarios.</p>
+        </div>
+        <div>
+            <span class="badge bg-light text-dark border p-2">
+                <i class="fas fa-calendar-alt me-1"></i> {% now "d M Y" %}
+            </span>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-4">
-            <div class="card text-white bg-primary mb-3 shadow">
-                <div class="card-body">
-                    <h5 class="card-title">Usuarios Gestión</h5>
-                    <p class="card-text fs-4">Administrar acceso</p>
-                    <a href="{% url 'admin_usuarios' %}" class="btn btn-light btn-sm text-primary fw-bold">Ir a Usuarios</a>
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 bg-white">
+                <div class="card-body p-4 position-relative overflow-hidden">
+                    <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                        <i class="fas fa-users fa-5x text-primary"></i>
+                    </div>
+                    <h6 class="text-uppercase text-muted fw-bold mb-2">Usuarios Registrados</h6>
+                    <h2 class="display-5 fw-bold text-dark mb-0">{{ total_usuarios }}</h2>
+                    <a href="{% url 'admin_usuarios' %}" class="btn btn-sm btn-outline-primary mt-3 stretched-link">
+                        Gestionar Usuarios <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-success mb-3 shadow">
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 bg-white">
+                <div class="card-body p-4 position-relative overflow-hidden">
+                    <div class="position-absolute top-0 end-0 p-3 opacity-10">
+                        <i class="fas fa-file-contract fa-5x text-success"></i>
+                    </div>
+                    <h6 class="text-uppercase text-muted fw-bold mb-2">Total Pólizas</h6>
+                    <h2 class="display-5 fw-bold text-dark mb-0">{{ total_polizas }}</h2>
+                    <div class="mt-3 text-success small">
+                        <i class="fas fa-check-circle me-1"></i> Sistema Operativo
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 bg-primary text-white">
+                <div class="card-body p-4 text-center d-flex flex-col justify-content-center align-items-center">
+                    <h5 class="fw-bold mb-3">Acceso Rápido</h5>
+                    <div class="d-grid gap-2 w-100">
+                        <a href="{% url 'admin_usuarios' %}" class="btn btn-light text-primary fw-bold">
+                            <i class="fas fa-user-plus me-2"></i> Crear Nuevo Usuario
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Sections -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0">Módulos del Sistema</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush rounded-bottom-4">
+                        <a href="#" class="list-group-item list-group-item-action p-3 d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-2 rounded me-3">
+                                <i class="fas fa-shield-alt text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold">Gestión de Pólizas</h6>
+                                <small class="text-muted">Administración del ciclo de vida de seguros.</small>
+                            </div>
+                            <span class="badge bg-success rounded-pill">Activo</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action p-3 d-flex align-items-center">
+                            <div class="bg-danger bg-opacity-10 p-2 rounded me-3">
+                                <i class="fas fa-car-crash text-danger"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold">Siniestros</h6>
+                                <small class="text-muted">Registro y seguimiento de eventos.</small>
+                            </div>
+                            <span class="badge bg-success rounded-pill">Activo</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action p-3 d-flex align-items-center">
+                            <div class="bg-info bg-opacity-10 p-2 rounded me-3">
+                                <i class="fas fa-file-invoice text-info"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold">Facturación</h6>
+                                <small class="text-muted">Control de pagos y cobranzas.</small>
+                            </div>
+                            <span class="badge bg-success rounded-pill">Activo</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+             <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-white py-3 border-0">
+                    <h5 class="fw-bold mb-0">Estado del Servidor</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Pólizas Activas</h5>
-                    <p class="card-text fs-4">150</p>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-bold">Base de Datos</span>
+                            <span class="small text-success">Conectado</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-bold">Almacenamiento</span>
+                            <span class="small text-muted">24% usado</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 24%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small fw-bold">Carga del Sistema</span>
+                            <span class="small text-muted">Baja</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 15%"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
