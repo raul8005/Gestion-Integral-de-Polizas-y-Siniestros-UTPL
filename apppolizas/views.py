@@ -14,9 +14,10 @@ from datetime import date
 
 from xhtml2pdf import pisa
 
-from apppolizas.models import Poliza, Siniestro, Factura, DocumentoSiniestro
+from apppolizas.models import Poliza, Siniestro, Factura, DocumentoSiniestro, ResponsableCustodio, Bien
 from django.views.generic import DetailView
 
+from django.db.models import Q
 
 from .forms import PolizaForm, SiniestroPorPolizaForm, SiniestroForm, SiniestroEditForm, FacturaForm, DocumentoSiniestroForm, CustodioForm, FiniquitoForm
 from .repositories import SiniestroRepository, UsuarioRepository, FiniquitoRepository
@@ -419,26 +420,30 @@ class SiniestroEditView(LoginRequiredMixin, View):
         return render(request, self.template_name, {'form': form, 'siniestro': siniestro})
 
     def post(self, request, pk):
-        # 1. Obtener la instancia de la base de datos PRIMERO
         siniestro_instancia = SiniestroRepository.get_by_id(pk)
         
-        # 2. Pasar la instancia al formulario junto con los datos del POST
-        form = SiniestroEditForm(request.POST, instance=siniestro_instancia)
+        # Pasamos request.FILES por si algún día permites subir archivos aquí
+        form = SiniestroEditForm(request.POST, request.FILES, instance=siniestro_instancia)
 
         if form.is_valid():
             try:
-                # 3. Pasar los datos LIMPIOS al servicio
+                # Si usas ModelForm, a veces basta con form.save(), 
+                # pero respetamos tu servicio:
                 SiniestroService.actualizar_siniestro(pk, form.cleaned_data)
+                
                 messages.success(request, 'Siniestro actualizado correctamente')
+                
+                # REDIRECCIÓN: Aquí es donde te enviamos al detalle tras guardar
                 return redirect('siniestro_detail', pk=pk)
+                
             except ValidationError as e:
                 messages.error(request, str(e))
         else:
-            # Si el formulario no es válido, esto te dirá por qué en la consola
-            print(form.errors) 
+            # === AQUÍ ESTABA EL PROBLEMA ===
+            # Antes solo hacías print(form.errors). Ahora enviamos el mensaje al usuario.
+            messages.error(request, "No se pudo guardar. Verifique que el Bien pertenezca al Custodio seleccionado.")
         
         return render(request, self.template_name, {'form': form, 'siniestro': siniestro_instancia})
-   
 
 class SiniestroDeleteView(LoginRequiredMixin, View):
     def dispatch(self, request, *args, **kwargs):
@@ -722,3 +727,42 @@ def marcar_notificacion_leida(request, notificacion_id):
     NotificacionService.leer_notificacion(notificacion_id, request.user)
     messages.success(request, "Notificación marcada como leída.")
     return redirect('lista_notificaciones')
+
+
+def buscar_custodios_ajax(request):
+    term = request.GET.get('term', '')  # Lo que escribe el usuario
+    custodios = ResponsableCustodio.objects.filter(
+        Q(nombre_completo__icontains=term) | 
+        Q(identificacion__icontains=term)
+    )[:20]  # Limitamos a 20 resultados para rapidez
+    
+    results = []
+    for c in custodios:
+        results.append({
+            'id': c.id,
+            'text': f"{c.nombre_completo} ({c.identificacion})"
+        })
+    return JsonResponse({'results': results})
+
+# Vista para buscar Bienes (Por Código) y devolver detalles
+def buscar_bienes_ajax(request):
+    term = request.GET.get('term', '')
+    # Buscamos por código o descripción
+    bienes = Bien.objects.filter(
+        Q(codigo__icontains=term) | 
+        Q(detalle__icontains=term)
+    )[:20]
+    
+    results = []
+    for b in bienes:
+        # Construimos la ubicación basada en el custodio (ya que el bien hereda ubicación)
+        ubicacion_txt = f"{b.custodio.edificio or ''} - {b.custodio.puesto or ''}"
+        
+        results.append({
+            'id': b.id,
+            'text': f"{b.codigo} - {b.detalle[:40]}...",
+            # Datos extra para el autorrellenado:
+            'nombre_completo': b.detalle,
+            'ubicacion': ubicacion_txt
+        })
+    return JsonResponse({'results': results})

@@ -147,7 +147,8 @@ class SiniestroEditForm(SiniestroForm):
             'ubicacion_bien': forms.TextInput(attrs={'class': 'form-control'}),
             'causa_siniestro': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'nombre_bien': forms.TextInput(attrs={'class': 'form-control'}),
-            
+            'bien': forms.Select(attrs={'class': 'form-select'}), 
+
             # Campos adicionales que SÍ se pueden editar en esta etapa
             'estado_tramite': forms.Select(attrs={'class': 'form-select'}),
             'cobertura_aplicada': forms.TextInput(attrs={'class': 'form-control'}),
@@ -162,6 +163,8 @@ class SiniestroEditForm(SiniestroForm):
             'modelo': forms.TextInput(attrs={'class': 'form-control'}),
             'serie': forms.TextInput(attrs={'class': 'form-control'}),
             'codigo_activo': forms.TextInput(attrs={'class': 'form-control'}),
+
+            
         }
 
 

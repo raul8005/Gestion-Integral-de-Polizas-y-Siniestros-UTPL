@@ -1,23 +1,19 @@
 {% extends 'master/masteranalista.html' %}
 
 {% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
 <style>
-    /* Ajustes para permitir scroll si el formulario es largo */
-    .admin-scroll-content {
-        overflow-y: visible !important; 
-        height: auto !important;
-        min-height: 100vh;
-    }
-    
-    body, .main-content-admin {
-        overflow-y: auto !important;
-        height: auto !important;
-    }
+    .admin-scroll-content { overflow-y: visible !important; height: auto !important; min-height: 100vh; }
+    /* Ajuste visual para Select2 */
+    .select2-container--bootstrap-5 .select2-selection { border-color: #dee2e6; }
 </style>
 {% endblock %}
 
 {% block admin_content %}
 <div class="container-fluid pb-5">
+    
     <div class="d-flex align-items-center justify-content-between mb-3">
         <div>
             <h3 class="fw-bold mb-0">Editar Siniestro</h3>
@@ -27,11 +23,28 @@
             </p>
         </div>
     </div>
-
     <hr class="mb-4">
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle fs-4 me-3"></i>
+                    <div>
+                        <strong>No se pudo guardar:</strong>
+                        <ul class="mb-0 ps-3">
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+
         <div class="card shadow-sm border-0">
             <div class="card-body">
                 <div class="row g-3">
@@ -43,24 +56,14 @@
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Fecha del Suceso</label>
                         {{ form.fecha_siniestro }}
-                        {% if form.fecha_siniestro.errors %}
-                            <div class="text-danger small">{{ form.fecha_siniestro.errors }}</div>
-                        {% endif %}
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Tipo de Siniestro</label>
                         {{ form.tipo_siniestro }}
-                        {% if form.tipo_siniestro.errors %}
-                            <div class="text-danger small">{{ form.tipo_siniestro.errors }}</div>
-                        {% endif %}
                     </div>
-
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Estado del Trámite</label>
                         {{ form.estado_tramite }}
-                        {% if form.estado_tramite.errors %}
-                            <div class="text-danger small">{{ form.estado_tramite.errors }}</div>
-                        {% endif %}
                     </div>
 
                     <div class="col-12 mt-4">
@@ -73,7 +76,7 @@
                             {% if form.custodio.errors %}
                                 <div class="text-danger small mt-1">{{ form.custodio.errors }}</div>
                             {% endif %}
-                            <div class="form-text mt-1"><i class="fas fa-info-circle me-1"></i>Seleccione al funcionario a cargo del bien.</div>
+                            <div class="form-text mt-1">Seleccione al funcionario a cargo del bien.</div>
                         </div>
                     </div>
 
@@ -81,40 +84,40 @@
                         <h6 class="text-primary fw-bold"><i class="fas fa-box-open me-2"></i>Detalle del Bien</h6>
                     </div>
 
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Buscar Bien (Por Código)</label>
+                        {{ form.bien }}
+                        <div class="form-text text-muted">Busque por el código del activo fijo.</div>
+                        {% if form.bien.errors %}
+                            <div class="text-danger small">{{ form.bien.errors }}</div>
+                        {% endif %}
+                    </div>
+
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Nombre del Bien</label>
                         {{ form.nombre_bien }}
-                        {% if form.nombre_bien.errors %}
-                            <div class="text-danger small">{{ form.nombre_bien.errors }}</div>
-                        {% endif %}
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Ubicación</label>
                         {{ form.ubicacion_bien }}
-                        {% if form.ubicacion_bien.errors %}
-                            <div class="text-danger small">{{ form.ubicacion_bien.errors }}</div>
-                        {% endif %}
                     </div>
+
                     <div class="col-12">
                         <label class="form-label fw-bold">Relato de los Hechos</label>
                         {{ form.causa_siniestro }}
-                        {% if form.causa_siniestro.errors %}
-                            <div class="text-danger small">{{ form.causa_siniestro.errors }}</div>
-                        {% endif %}
                     </div>
                     
-                    <div class="d-none">
-                        {{ form.poliza }}
-                    </div>
-
+                    <div class="d-none">{{ form.poliza }}</div>
+                    
                 </div>
             </div>
             
             <div class="card-footer bg-white border-0 pt-3 pb-4">
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="{% url 'siniestro_detail' siniestro.id %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-times me-2"></i>Cancelar
+                    <a href="{% url 'siniestro_detail' siniestro.id %}" class="btn btn-secondary px-4">
+                        <i class="fas fa-arrow-left me-2"></i>Volver
                     </a>
+                    
                     <button type="submit" class="btn btn-primary px-4">
                         <i class="fas fa-save me-2"></i>Guardar Cambios
                     </button>
@@ -123,4 +126,67 @@
         </div>
     </form>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> 
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    
+    // 1. Convertir el select de CUSTODIO a Buscador AJAX
+    $('#id_custodio').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Escriba nombre o cédula...',
+        allowClear: true,
+        minimumInputLength: 2, 
+        width: '100%',
+        ajax: {
+            url: "{% url 'ajax_buscar_custodios' %}",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { term: params.term };
+            },
+            processResults: function (data) {
+                return { results: data.results };
+            }
+        }
+    });
+
+    // 2. Convertir el select de BIEN a Buscador AJAX + Autorrellenado
+    $('#id_bien').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Escriba el código del bien...',
+        allowClear: true,
+        minimumInputLength: 2,
+        width: '100%',
+        ajax: {
+            url: "{% url 'ajax_buscar_bienes' %}",
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { term: params.term };
+            },
+            processResults: function (data) {
+                return { results: data.results };
+            }
+        }
+    });
+
+    // 3. EVENTO: Cuando seleccionan un bien, rellenar los inputs de texto
+    $('#id_bien').on('select2:select', function (e) {
+        var data = e.params.data;
+        // Rellenar Nombre del Bien
+        $('#id_nombre_bien').val(data.nombre_completo);
+        // Rellenar Ubicación
+        $('#id_ubicacion_bien').val(data.ubicacion);
+    });
+
+    // (Opcional) Si quitan la selección, limpiar campos
+    $('#id_bien').on('select2:clear', function (e) {
+        $('#id_nombre_bien').val('');
+        $('#id_ubicacion_bien').val('');
+    });
+});
+</script>
 {% endblock %}
