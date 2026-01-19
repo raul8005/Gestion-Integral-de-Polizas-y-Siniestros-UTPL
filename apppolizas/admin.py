@@ -4,6 +4,17 @@ from .models import (
     ResponsableCustodio, Aseguradora, Broker, Finiquito, Notificacion, DocumentoPoliza
 )
 
+# ... otros imports
+from .models import Bien # Asegúrate de importar Bien
+
+@admin.register(Bien)
+class BienAdmin(admin.ModelAdmin):
+    list_display = ('codigo', 'detalle', 'custodio', 'marca', 'modelo', 'estado_operativo')
+    list_filter = ('estado_fisico', 'estado_operativo', 'marca')
+    search_fields = ('codigo', 'detalle', 'custodio__nombre_completo')
+    raw_id_fields = ('custodio',) # Útil si tienes miles de custodios
+
+    
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
     list_display = ('username', 'email', 'rol', 'cedula', 'estado')

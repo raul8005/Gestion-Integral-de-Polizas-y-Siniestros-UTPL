@@ -192,7 +192,7 @@ $(document).ready(function() {
         minimumInputLength: 2,
         width: '100%',
         ajax: {
-            url: "{% url 'ajax_buscar_bienes' %}",
+            url: "{% url 'buscar_bienes_ajax' %}",
             dataType: 'json',
             delay: 250,
             data: function (params) {

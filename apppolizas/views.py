@@ -308,6 +308,12 @@ class SiniestroListView(LoginRequiredMixin, View):
 
     def get(self, request):
         siniestros = SiniestroService.listar_todos()
+        query = request.GET.get('q')
+        if query:
+            siniestros = siniestros.filter(
+                Q(custodio__nombre_completo__icontains=query) |
+                Q(custodio__identificacion__icontains=query)
+            )
 
         return render(request, self.template_name, {
             'siniestros': siniestros,
@@ -425,6 +431,18 @@ class SiniestroDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
+        # --- Lógica para la barra de progreso ---
+        progress_map = {
+            'REPORTADO': 25,
+            'ENVIADO_ASEGURADORA': 60,
+            'REPARACION': 80,
+            'LIQUIDADO': 100,
+        }
+        siniestro = self.get_object()
+        context['progress_percentage'] = progress_map.get(siniestro.estado_tramite, 0)
+        context['estado_display'] = siniestro.get_estado_tramite_display()
+
+
         # --- Tu lógica actual ---
         context['siniestros_relacionados'] = SiniestroService.listar_por_poliza(
             self.object.poliza.id
@@ -813,6 +831,73 @@ class FiniquitoCreateView(LoginRequiredMixin, View):
         print(f"--- DEBUG: Renderizando nuevamente formulario por error en POST para siniestro {siniestro_id} ---")
         return render(request, self.template_name, {'form': form, 'siniestro': siniestro})
     
+class RepararSiniestroView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        siniestro = get_object_or_404(Siniestro, pk=pk)
+        resultado = request.POST.get('resultado')
+
+        if siniestro.estado_tramite != 'ENVIADO_ASEGURADORA':
+            messages.warning(request, "Esta acción solo se puede realizar cuando el siniestro ha sido enviado a la aseguradora.")
+            return redirect('siniestro_detail', pk=pk)
+
+        if resultado == 'ARREGLADO':
+            siniestro.estado_tramite = 'REPARACION'
+            siniestro.resultado = 'ARREGLADO'
+            siniestro.save()
+            messages.success(request, f"El bien '{siniestro.bien.detalle}' ha sido marcado como arreglado.")
+        
+        elif resultado == 'REEMPLAZADO':
+            serie = request.POST.get('serie')
+            marca = request.POST.get('marca')
+            modelo = request.POST.get('modelo')
+
+            if not all([serie, marca, modelo]):
+                messages.error(request, "Debe proporcionar todos los datos para el reemplazo del bien.")
+                return redirect('siniestro_detail', pk=pk)
+
+            # Lógica para reemplazar el bien
+            bien_antiguo = siniestro.bien
+            bien_antiguo.estado_operativo = 'INACTIVO'
+            bien_antiguo.save()
+            
+            # Crear un nuevo bien con datos actualizados
+            nuevo_codigo = f"{bien_antiguo.codigo}-R"
+            
+            nuevo_bien = Bien.objects.create(
+                custodio=bien_antiguo.custodio,
+                codigo=nuevo_codigo,
+                baan_v=bien_antiguo.baan_v,
+                detalle=f"Reemplazo de: {bien_antiguo.detalle}",
+                serie=serie,
+                modelo=modelo,
+                marca=marca,
+                estado_fisico='B',
+                estado_operativo='ACTIVO'
+            )
+            
+            # Actualizar el siniestro para que apunte al nuevo bien
+            siniestro.bien = nuevo_bien
+            siniestro.estado_tramite = 'REPARACION'
+            siniestro.resultado = 'REEMPLAZADO'
+            siniestro.save()
+            messages.success(request, f"El bien '{bien_antiguo.detalle}' ha sido reemplazado por '{nuevo_bien.detalle}'.")
+        
+        else:
+            messages.error(request, "Acción no válida.")
+
+        return redirect('siniestro_detail', pk=pk)
+
+class EnviarAseguradoraView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        siniestro = get_object_or_404(Siniestro, pk=pk)
+        if siniestro.estado_tramite == 'REPORTADO':
+            siniestro.estado_tramite = 'ENVIADO_ASEGURADORA'
+            siniestro.save()
+            messages.success(request, "El siniestro ha sido enviado a la aseguradora.")
+        else:
+            messages.warning(request, "Esta acción no se puede realizar en el estado actual del siniestro.")
+        return redirect('siniestro_detail', pk=pk)
+
 # ---------------------------------------------
 # NOTIFICACIONES
 # ---------------------------------------------
@@ -837,60 +922,36 @@ def marcar_notificacion_leida(request, notificacion_id):
 
 
 def buscar_custodios_ajax(request):
-    print("=== AJAX BUSCANDO CUSTODIOS ===")
-    term = request.GET.get('term', '')  # Lo que escribe el usuario
-    print(f"Término de búsqueda: {term}")
-    
+    term = request.GET.get('term', '')
+    # Buscamos por nombre o cédula
     custodios = ResponsableCustodio.objects.filter(
-        Q(nombre_completo__icontains=term) | 
-        Q(identificacion__icontains=term)
-    )[:20]  # Limitamos a 20 resultados para rapidez
+        nombre_completo__icontains=term
+    ) | ResponsableCustodio.objects.filter(identificacion__icontains=term)
     
-    print(f"Custodios encontrados: {custodios.count()}")
-    
-    results = []
-    for c in custodios:
-        results.append({
-            'id': c.id,
-            'text': f"{c.nombre_completo} ({c.identificacion})"
-        })
-    
-    print(f"Resultados para AJAX: {results}")
+    results = [{'id': c.id, 'text': f"{c.nombre_completo} ({c.identificacion})"} for c in custodios[:10]]
     return JsonResponse({'results': results})
 
 # Vista para buscar Bienes (Por Código) y devolver detalles
 def buscar_bienes_ajax(request):
-    print("=== AJAX BUSCANDO BIENES ===")
     term = request.GET.get('term', '')
-    custodio_id = request.GET.get('custodio_id', None) # Recibir el ID del custodio
-    
-    print(f"Término de búsqueda: {term}")
-    print(f"Custodio ID (filtro): {custodio_id}")
-    
+    custodio_id = request.GET.get('custodio_id') # Viene del JS como string o vacío
+
     query = Q(codigo__icontains=term) | Q(detalle__icontains=term)
     bienes = Bien.objects.filter(query)
-    
-    print(f"Bienes encontrados (sin filtro): {bienes.count()}")
 
-    # RESTRICCIÓN: Si se envió un custodio, filtrar solo sus bienes
-    if custodio_id:
-        bienes = bienes.filter(custodio_id=custodio_id)
-        print(f"Bienes después de filtrar por custodio: {bienes.count()}")
-    
-    bienes = bienes[:20]
+    if custodio_id and custodio_id.isdigit(): # Validación de seguridad
+        bienes = bienes.filter(custodio_id=int(custodio_id))
     
     results = []
     for b in bienes:
-        # Importante: Estas llaves deben coincidir con el JS
         results.append({
-            'id': b.id,  
-            'text': f"{b.codigo} - {b.detalle[:50]}",
+            'id': b.id,
+            'text': f"{b.codigo} - {b.detalle[:40]}",
+            # Atributos extra para el autorrellenado en el frontend
             'nombre_completo': b.detalle,
-            'marca': b.marca if b.marca else "",
-            'modelo': b.modelo if b.modelo else "",
-            'serie': b.serie if b.serie else "",
-            'ubicacion': f"{b.custodio.edificio or ''} - {b.custodio.puesto or ''}".strip(" - "),
+            'marca': b.marca or "N/A",
+            'modelo': b.modelo or "N/A",
+            'serie': b.serie or "N/A",
+            'ubicacion': f"{b.custodio.edificio} - {b.custodio.puesto}" if b.custodio.puesto else ""
         })
-    
-    print(f"Resultados para AJAX: {results}")
     return JsonResponse({'results': results})

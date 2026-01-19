@@ -10,8 +10,9 @@
     .btn-primary-custom { background-color: #0d6efd; border-color: #0d6efd; color: white; }
     .btn-primary-custom:hover { background-color: #0b5ed7; color: white; }
     
-    /* Ajuste visual para Select2 dentro de modales */
-    .select2-container--bootstrap-5 { z-index: 9999 !important; }
+    /* Ajuste visual para Select2 dentro de modales y evitar que quede atrás */
+    .select2-container { z-index: 1060 !important; }
+    .select2-container--bootstrap-5 { width: 100% !important; }
 </style>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
@@ -69,8 +70,6 @@
                                 </a>
                             </td>
                         </tr>
-                        {% empty %}
-                        <tr><td colspan="5" class="text-center text-muted py-4">No hay siniestros registrados para esta póliza.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -96,9 +95,11 @@
                                 <i class="fas fa-file-contract me-1"></i>Póliza Asociada
                             </label>
                             {{ form.poliza }}
-                            <small class="text-muted">Seleccione la póliza bajo la cual se registrará este siniestro.</small>
                         </div>
-                        <div class="d-none">{{ form.bien }}</div>
+                        
+                        <div class="d-none">
+                            {{ form.bien }}
+                        </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Fecha del Siniestro</label>
@@ -115,15 +116,13 @@
                                     <i class="fas fa-user-shield me-1"></i>Custodio Responsable
                                 </label>
                                 {{ form.custodio }}
-                                <small class="text-muted">Seleccione primero al custodio para habilitar la búsqueda de bienes.</small>
+                                <small class="text-muted">Busque al custodio para habilitar los bienes asociados.</small>
                             </div>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-primary">Buscar Bien (Por Código)</label>
-                            <select id="id_bien_ajax" class="form-select" disabled>
-                                <option value="">--- Seleccione un custodio primero ---</option>
-                            </select>
+                            {{ form.bien_ajax }}
                         </div>
 
                         <div class="col-md-6">
@@ -173,75 +172,75 @@
 
 <script>
     $(document).ready(function () {
-        // 1. Inicializar DataTable
+        // 1. DataTable (Tu configuración original)
         $('#tablaSiniestros').DataTable({
             "language": { "url": "https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
             "responsive": true,
             "order": [[2, "desc"]]
         });
 
-        // 2. Configuración de Select2 al abrir el Modal
+        // 2. Inicialización de Select2 al abrir el modal
         $('#crearSiniestroModal').on('shown.bs.modal', function () {
-
-            // BUSCADOR CUSTODIO
+            
+            // Buscador de Custodios
             $('#id_custodio').select2({
                 theme: 'bootstrap-5',
                 dropdownParent: $('#crearSiniestroModal'),
-                placeholder: 'Buscar custodio...',
-                minimumInputLength: 2,
+                placeholder: 'Seleccione un custodio...',
                 ajax: {
-                    url: "{% url 'ajax_buscar_custodios' %}",
+                    url: "{% url 'buscar_custodios_ajax' %}",
                     dataType: 'json',
                     processResults: function (data) { return { results: data.results }; }
                 }
             });
 
-            // BUSCADOR BIEN (Filtrado por custodio)
+            // Buscador de Bienes
             $('#id_bien_ajax').select2({
                 theme: 'bootstrap-5',
                 dropdownParent: $('#crearSiniestroModal'),
                 placeholder: 'Escriba el código del bien...',
-                minimumInputLength: 1,
                 ajax: {
-                    url: "{% url 'ajax_buscar_bienes' %}",
+                    url: "{% url 'buscar_bienes_ajax' %}",
                     dataType: 'json',
                     data: function (params) {
                         return {
                             term: params.term,
-                            custodio_id: $('#id_custodio').val() // ENVIAMOS EL ID DEL CUSTODIO
+                            custodio_id: $('#id_custodio').val()
                         };
                     },
                     processResults: function (data) { return { results: data.results }; }
                 }
             });
+
+            // Si el custodio está vacío, deshabilitar buscador de bienes
+            if (!$('#id_custodio').val()) {
+                $('#id_bien_ajax').prop('disabled', true);
+            }
         });
 
-        // 3. RESTRICCIÓN: Si cambia el custodio, resetear el bien
+        // 3. Lógica de filtrado dinámico
         $('#id_custodio').on('change', function() {
             if ($(this).val()) {
                 $('#id_bien_ajax').prop('disabled', false).val(null).trigger('change');
             } else {
                 $('#id_bien_ajax').prop('disabled', true).val(null).trigger('change');
             }
+            // Limpiar campos informativos
+            $('#id_nombre_bien, #id_marca, #id_modelo, #id_serie, #id_ubicacion_bien, #id_bien').val('');
         });
 
-        // --- AQUÍ ESTÁ LA CARGA DE INFO ---
+        // 4. Llenado automático de datos (La corrección que necesitabas)
         $('#id_bien_ajax').on('select2:select', function (e) {
-            // 'd' contiene el objeto que armamos en Python (views.py)
             var d = e.params.data; 
             
-            console.log("Bien seleccionado:", d); // Esto te servirá para ver si llegan los datos
-
-            // Seteamos los valores en los campos reales del formulario de Django
-            // Usamos los IDs estándar que genera Django: id_<nombre_campo>
+            // Estos valores se mapean desde el JSON que devuelve tu view 'buscar_bienes_ajax'
             $('#id_nombre_bien').val(d.nombre_completo);
             $('#id_marca').val(d.marca);
             $('#id_modelo').val(d.modelo);
             $('#id_serie').val(d.serie);
             $('#id_ubicacion_bien').val(d.ubicacion);
 
-            // MUY IMPORTANTE: Sincronizar el ID del bien con el campo oculto 
-            // que realmente se guarda en la base de datos
+            // Sincronizar el campo real de Django
             $('#id_bien').val(d.id);
         });
     });

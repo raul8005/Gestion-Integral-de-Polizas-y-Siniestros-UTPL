@@ -63,6 +63,16 @@ class PolizaForm(forms.ModelForm):
 # Modifica la clase SiniestroForm para incluir los campos técnicos
 class SiniestroForm(forms.ModelForm):
     # Campos auxiliares para mostrar info del Bien (no se guardan en BD)
+    bien_ajax = forms.CharField(
+        label="Buscar Bien (Código)",
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_bien_ajax'})
+    )
+
+    nombre_bien = forms.CharField(
+        required=False, 
+        widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control'})
+    )
     marca = forms.CharField(
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'readonly': True}),
@@ -119,6 +129,11 @@ class SiniestroForm(forms.ModelForm):
                 raise forms.ValidationError(error_msg)
             else:
                 print("✅ Validación de integridad OK")
+            # Validar que el bien esté activo
+            if bien.estado_operativo == 'INACTIVO':
+                error_msg = f"El bien '{bien.detalle}' está inactivo y no se le puede registrar un siniestro."
+                print(f"❌ ERROR DE VALIDACIÓN: {error_msg}")
+                raise forms.ValidationError(error_msg)
         else:
             print("⚠️ Faltan custodio o bien para validar integridad")
             
@@ -144,23 +159,29 @@ class SiniestroForm(forms.ModelForm):
             'codigo_activo': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-# Asegúrate de que SiniestroPorPolizaForm también los incluya si lo usas en el modal
-class SiniestroPorPolizaForm(SiniestroForm): # Cambia la herencia a SiniestroForm
-    class Meta(SiniestroForm.Meta):
-        exclude = [
-            'poliza', 'usuario_gestor', 'fecha_notificacion', 
-            'estado_tramite', 'valor_reclamo', 'deducible_aplicado', 
-            'depreciacion', 'valor_a_pagar'
-        ]
+class SiniestroPorPolizaForm(forms.ModelForm):
+    # Campos virtuales para mostrar info del bien (No se guardan, solo lectura)
+    nombre_bien = forms.CharField(required=False, widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control', 'id': 'id_nombre_bien'}))
+    marca = forms.CharField(required=False, widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control', 'id': 'id_marca'}))
+    modelo = forms.CharField(required=False, widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control', 'id': 'id_modelo'}))
+    serie = forms.CharField(required=False, widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control', 'id': 'id_serie'}))
+    
+    # Campo para el buscador Select2
+    bien_ajax = forms.CharField(
+        label="Buscar Bien (Código)",
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_bien_ajax'})
+    )
 
+    class Meta:
+        model = Siniestro
+        fields = ['custodio', 'bien', 'fecha_siniestro', 'tipo_siniestro', 'ubicacion_bien', 'causa_siniestro']
         widgets = {
+            'custodio': forms.Select(attrs={'id': 'id_custodio', 'class': 'form-select'}),
+            'bien': forms.HiddenInput(attrs={'id': 'id_bien'}), # El ID real que Django guardará
             'fecha_siniestro': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'tipo_siniestro': forms.TextInput(attrs={'class': 'form-control'}),
-            'ubicacion_bien': forms.TextInput(attrs={'class': 'form-control'}),
-            'causa_siniestro': forms.Textarea(attrs={'class': 'form-control'}),
-            'nombre_bien': forms.TextInput(attrs={'class': 'form-control'}),
+            'causa_siniestro': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
-
 
 class SiniestroEditForm(forms.ModelForm):
     # Campos de solo lectura para información del bien
@@ -229,6 +250,11 @@ class SiniestroEditForm(forms.ModelForm):
                 raise forms.ValidationError(error_msg)
             else:
                 print("✅ Validación de integridad OK")
+            # Validar que el bien esté activo
+            if bien.estado_operativo == 'INACTIVO':
+                error_msg = f"El bien '{bien.detalle}' está inactivo y no se le puede registrar un siniestro."
+                print(f"❌ ERROR DE VALIDACIÓN: {error_msg}")
+                raise forms.ValidationError(error_msg)
         else:
             print("⚠️ Faltan custodio o bien para validar integridad")
             

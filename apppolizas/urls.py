@@ -18,19 +18,19 @@ from .views import (
     crear_factura,
     generar_pdf_factura,
     SubirEvidenciaView,
-    SiniestroDeleteEvidenciaView, 
-    CustodioListView, 
-    CustodioDetailApiView,     
-    BienesPorCustodioView,     
-    BienDetailApiView,        
+    SiniestroDeleteEvidenciaView,
+    CustodioListView,
+    CustodioDetailApiView,
+    BienesPorCustodioView,
+    BienDetailApiView,
     FiniquitoCreateView,
     lista_notificaciones,
     marcar_notificacion_leida,
     buscar_custodios_ajax,
     buscar_bienes_ajax,
-    
+    RepararSiniestroView,
+    EnviarAseguradoraView,
 )
-
 urlpatterns = [
     path('', LoginView.as_view(), name='login'),
 
@@ -56,17 +56,11 @@ urlpatterns = [
     path('siniestros/<int:pk>/', SiniestroDetailView.as_view(), name='siniestro_detail'),
     path('siniestros/<int:pk>/editar/', SiniestroEditView.as_view(), name='siniestro_edit'),
     path('siniestros/<int:pk>/eliminar/', SiniestroDeleteView.as_view(), name='siniestro_delete'),
+    path('siniestros/<int:pk>/reparar/', RepararSiniestroView.as_view(), name='siniestro_reparar'),
+    path('siniestros/<int:pk>/enviar_aseguradora/', EnviarAseguradoraView.as_view(), name='enviar_aseguradora'),
 
-    # Facturacion
-    path('facturas/', lista_facturas, name='lista_facturas'),
-    path('facturas/nueva/', crear_factura, name='crear_factura'),
-    path('facturas/pdf/<int:factura_id>/', generar_pdf_factura, name='generar_pdf_factura'),
-
-    # Logout
-    path('logout/', logout_view, name='logout'),
-
-    # Subida de evidencia para siniestros
-    path('siniestros/<int:siniestro_id>/subir-evidencia/', SubirEvidenciaView.as_view(), name='subir_evidencia'),
+    # Documentos de Siniestro
+    path('siniestros/<int:siniestro_id>/subir_evidencia/', SubirEvidenciaView.as_view(), name='subir_evidencia'),
     path('documentos/<int:pk>/eliminar/', SiniestroDeleteEvidenciaView.as_view(), name='eliminar_evidencia'),
 
 
@@ -89,6 +83,11 @@ urlpatterns = [
     path('notificaciones/leer/<int:notificacion_id>/', marcar_notificacion_leida, name='marcar_notificacion_leida'),
 
     # Buscador custodio y bienes
-    path('ajax/buscar-custodios/', buscar_custodios_ajax, name='ajax_buscar_custodios'),
-    path('ajax/buscar-bienes/', buscar_bienes_ajax, name='ajax_buscar_bienes'),
+    path('ajax/buscar-custodios/', buscar_custodios_ajax, name='buscar_custodios_ajax'),
+    path('ajax/buscar-bienes/', buscar_bienes_ajax, name='buscar_bienes_ajax'),
+
+    # Facturas
+    path('facturas/', lista_facturas, name='lista_facturas'),
+    path('facturas/crear/', crear_factura, name='crear_factura'),
+    path('facturas/<int:factura_id>/pdf/', generar_pdf_factura, name='generar_pdf_factura'),
 ]

@@ -297,7 +297,7 @@ class BienService:
         if not custodio:
             raise ValidationError("El custodio solicitado no existe.")
         
-        return BienRepository.get_by_custodio(custodio_id)
+        return BienRepository.get_by_custodio(custodio_id).select_related('custodio')
 
     @staticmethod
     def obtener_detalle_bien(bien_id):

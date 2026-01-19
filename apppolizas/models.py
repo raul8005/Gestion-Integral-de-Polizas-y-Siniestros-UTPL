@@ -95,9 +95,17 @@ class Bien(models.Model):
     serie = models.CharField(max_length=100, blank=True, null=True, default='No aplica')
     modelo = models.CharField(max_length=100, blank=True, null=True, default='No aplica')
     marca = models.CharField(max_length=100, blank=True, null=True)
+    ubicacion = models.CharField(max_length=100, default='Sala H - Computo', verbose_name="Ubicación")
     
     # Estado marcado con X en la imagen (B/R)
     estado_fisico = models.CharField(max_length=1, choices=ESTADO_BIEN_CHOICES, default='B', verbose_name="Estado Físico")
+
+    # Nuevo campo para estado operativo
+    ESTADO_OPERATIVO_CHOICES = [
+        ('ACTIVO', 'Activo'),
+        ('INACTIVO', 'Inactivo'),
+    ]
+    estado_operativo = models.CharField(max_length=10, choices=ESTADO_OPERATIVO_CHOICES, default='ACTIVO', verbose_name="Estado Operativo")
 
     def clean(self):
         """Validación personalizada para limitar a 5 bienes por custodio"""
@@ -199,11 +207,19 @@ class Siniestro(models.Model):
         ('REPORTADO', 'Reportado'),
         ('DOCUMENTACION', 'En validación'),
         ('ENVIADO_ASEGURADORA', 'Enviado a Aseguradora'),
+        ('REPARACION', 'Reparación/Observación'),
         ('LIQUIDADO', 'Liquidado'),
         ('RECHAZADO', 'Rechazado'),
     ]
     estado_tramite = models.CharField(max_length=50, choices=ESTADO_CHOICES, default='REPORTADO')
     cobertura_aplicada = models.CharField(max_length=100, null=True, blank=True)
+
+    # Nuevo campo para el resultado de la reparación
+    RESULTADO_CHOICES = [
+        ('ARREGLADO', 'Arreglado'),
+        ('REEMPLAZADO', 'Reemplazado'),
+    ]
+    resultado = models.CharField(max_length=20, choices=RESULTADO_CHOICES, null=True, blank=True)
     
     # Valor estimado inicial
     valor_reclamo_estimado = models.DecimalField(max_digits=12, decimal_places=2, default=0)

@@ -19,7 +19,8 @@
                         <tr>
                             <th>Código</th>
                             <th>Descripción Breve</th>
-                            <th>Estado</th>
+                            <th>Estado Físico</th>
+                            <th>Estado del Bien</th>
                             <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -35,6 +36,13 @@
                                     <span class="badge bg-warning text-dark">Regular</span>
                                 {% else %}
                                     <span class="badge bg-danger">Malo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if b.estado_operativo == 'ACTIVO' %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactivo</span>
                                 {% endif %}
                             </td>
                             <td class="text-center">
