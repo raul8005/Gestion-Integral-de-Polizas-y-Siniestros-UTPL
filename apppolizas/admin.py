@@ -2,9 +2,19 @@ from django.contrib import admin
 
 # ... otros imports
 from .models import Bien  # Asegúrate de importar Bien
-from .models import (Aseguradora, Broker, DocumentoPoliza, DocumentoSiniestro,
-                     Factura, Finiquito, Notificacion, Poliza,
-                     ResponsableCustodio, Siniestro, Usuario)
+from .models import (
+    Aseguradora,
+    Broker,
+    DocumentoPoliza,
+    DocumentoSiniestro,
+    Factura,
+    Finiquito,
+    Notificacion,
+    Poliza,
+    ResponsableCustodio,
+    Siniestro,
+    Usuario,
+)
 
 
 @admin.register(Bien)

@@ -1,7 +1,15 @@
 from django import forms
 
-from .models import (Aseguradora, Bien, Broker, Factura, Finiquito, Poliza,
-                     ResponsableCustodio, Siniestro)
+from .models import (
+    Aseguradora,
+    Bien,
+    Broker,
+    Factura,
+    Finiquito,
+    Poliza,
+    ResponsableCustodio,
+    Siniestro,
+)
 
 
 class LoginForm(forms.Form):

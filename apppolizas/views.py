@@ -15,17 +15,37 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, TemplateView, View
 from xhtml2pdf import pisa
 
-from apppolizas.models import (Bien, DocumentoSiniestro, Factura, Poliza,
-                               ResponsableCustodio, Siniestro)
+from apppolizas.models import (
+    Bien,
+    DocumentoSiniestro,
+    Factura,
+    Poliza,
+    ResponsableCustodio,
+    Siniestro,
+)
 
-from .forms import (CustodioForm, DocumentoSiniestroForm, FacturaForm,
-                    FiniquitoForm, PolizaForm, SiniestroEditForm,
-                    SiniestroForm, SiniestroPorPolizaForm)
-from .repositories import (FiniquitoRepository, SiniestroRepository,
-                           UsuarioRepository)
-from .services import (AuthService, BienService, CustodioService,
-                       DocumentoService, FacturaService, FiniquitoService,
-                       NotificacionService, PolizaService, SiniestroService)
+from .forms import (
+    CustodioForm,
+    DocumentoSiniestroForm,
+    FacturaForm,
+    FiniquitoForm,
+    PolizaForm,
+    SiniestroEditForm,
+    SiniestroForm,
+    SiniestroPorPolizaForm,
+)
+from .repositories import FiniquitoRepository, SiniestroRepository, UsuarioRepository
+from .services import (
+    AuthService,
+    BienService,
+    CustodioService,
+    DocumentoService,
+    FacturaService,
+    FiniquitoService,
+    NotificacionService,
+    PolizaService,
+    SiniestroService,
+)
 
 
 # =====================================================

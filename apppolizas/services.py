@@ -9,13 +9,18 @@ from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from .models import (Factura, Finiquito, Notificacion, Poliza, Siniestro,
-                     Usuario)
-from .repositories import (BienRepository, CustodioRepository,
-                           DocumentoRepository, FacturaRepository,
-                           FiniquitoRepository, NotificacionRepository,
-                           PolizaRepository, SiniestroRepository,
-                           UsuarioRepository)
+from .models import Factura, Finiquito, Notificacion, Poliza, Siniestro, Usuario
+from .repositories import (
+    BienRepository,
+    CustodioRepository,
+    DocumentoRepository,
+    FacturaRepository,
+    FiniquitoRepository,
+    NotificacionRepository,
+    PolizaRepository,
+    SiniestroRepository,
+    UsuarioRepository,
+)
 
 
 class AuthService:

@@ -78,7 +78,7 @@ jobs:
           - 9000:9000
         # ✅ CORRECCIÓN: Se eliminó el 'options' con entrypoint conflictivo.
         # MinIO ahora usa su comando interno 'server /data' por defecto.
-        args: server /data 
+        #args: server /data 
 
     steps:
       - name: Checkout code
