@@ -18,6 +18,7 @@ from apppolizas.models import Poliza, Siniestro, Factura, DocumentoSiniestro, Re
 from django.views.generic import DetailView
 
 from django.db.models import Q
+from django.db import transaction
 
 from .forms import PolizaForm, SiniestroPorPolizaForm, SiniestroForm, SiniestroEditForm, FacturaForm, DocumentoSiniestroForm, CustodioForm, FiniquitoForm
 from .repositories import SiniestroRepository, UsuarioRepository, FiniquitoRepository
@@ -855,32 +856,33 @@ class RepararSiniestroView(LoginRequiredMixin, View):
                 messages.error(request, "Debe proporcionar todos los datos para el reemplazo del bien.")
                 return redirect('siniestro_detail', pk=pk)
 
-            # Lógica para reemplazar el bien
-            bien_antiguo = siniestro.bien
-            bien_antiguo.estado_operativo = 'INACTIVO'
-            bien_antiguo.save()
-            
-            # Crear un nuevo bien con datos actualizados
-            nuevo_codigo = f"{bien_antiguo.codigo}-R"
-            
-            nuevo_bien = Bien.objects.create(
-                custodio=bien_antiguo.custodio,
-                codigo=nuevo_codigo,
-                baan_v=bien_antiguo.baan_v,
-                detalle=f"Reemplazo de: {bien_antiguo.detalle}",
-                serie=serie,
-                modelo=modelo,
-                marca=marca,
-                estado_fisico='B',
-                estado_operativo='ACTIVO'
-            )
-            
-            # Actualizar el siniestro para que apunte al nuevo bien
-            siniestro.bien = nuevo_bien
-            siniestro.estado_tramite = 'REPARACION'
-            siniestro.resultado = 'REEMPLAZADO'
-            siniestro.save()
-            messages.success(request, f"El bien '{bien_antiguo.detalle}' ha sido reemplazado por '{nuevo_bien.detalle}'.")
+            with transaction.atomic(): # Wrap the replacement logic in a transaction
+                # Lógica para reemplazar el bien
+                bien_antiguo = siniestro.bien
+                bien_antiguo.estado_operativo = 'INACTIVO'
+                bien_antiguo.save()
+                
+                # Crear un nuevo bien con datos actualizados
+                nuevo_codigo = f"{bien_antiguo.codigo}-R"
+                
+                nuevo_bien = Bien.objects.create(
+                    custodio=bien_antiguo.custodio,
+                    codigo=nuevo_codigo,
+                    baan_v=bien_antiguo.baan_v,
+                    detalle=f"Reemplazo de: {bien_antiguo.detalle}",
+                    serie=serie,
+                    modelo=modelo,
+                    marca=marca,
+                    estado_fisico='B',
+                    estado_operativo='ACTIVO'
+                )
+                
+                # Actualizar el siniestro para que apunte al nuevo bien
+                siniestro.bien = nuevo_bien
+                siniestro.estado_tramite = 'REPARACION'
+                siniestro.resultado = 'REEMPLAZADO'
+                siniestro.save()
+                messages.success(request, f"El bien '{bien_antiguo.detalle}' ha sido reemplazado por '{nuevo_bien.detalle}'.")
         
         else:
             messages.error(request, "Acción no válida.")
@@ -936,7 +938,7 @@ def buscar_bienes_ajax(request):
     term = request.GET.get('term', '')
     custodio_id = request.GET.get('custodio_id') # Viene del JS como string o vacío
 
-    query = Q(codigo__icontains=term) | Q(detalle__icontains=term)
+    query = Q(estado_operativo='ACTIVO') & (Q(codigo__icontains=term) | Q(detalle__icontains=term))
     bienes = Bien.objects.filter(query)
 
     if custodio_id and custodio_id.isdigit(): # Validación de seguridad

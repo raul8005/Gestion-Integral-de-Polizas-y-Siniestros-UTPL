@@ -35,17 +35,21 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
       - name: Check code formatting with black
-        run: |
-          black --check --diff .
+        run: black --check --diff .
 
       - name: Check import sorting with isort
-        run: |
-          isort --check-only --diff .
+        run: isort --check-only --diff .
 
   test:
     name: Run Tests
     runs-on: ubuntu-latest
-    
+
+    env:
+      MINIO_ENDPOINT: http://127.0.0.1:9000
+      MINIO_ACCESS_KEY: admin
+      MINIO_SECRET_KEY: password123
+      MINIO_BUCKET_NAME: expedientes-siniestros
+
     services:
       mysql:
         image: mysql:8.0
@@ -67,14 +71,9 @@ jobs:
           MINIO_ROOT_PASSWORD: password123
         ports:
           - 9000:9000
-          - 9001:9001
         options: >-
-          server /data --console-address ":9001"
-        healthcheck:
-          test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-          interval: 30s
-          timeout: 20s
-          retries: 3
+          --entrypoint sh
+          -c "minio server /data"
 
     steps:
       - name: Checkout code
@@ -94,7 +93,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-django pytest-cov
+          pip install pytest pytest-django pytest-cov awscli
 
       - name: Wait for MySQL
         run: |
@@ -105,17 +104,17 @@ jobs:
 
       - name: Wait for MinIO
         run: |
-          until curl -f http://localhost:9000/minio/health/live; do
+          until curl -f http://127.0.0.1:9000/minio/health/live; do
             echo "Waiting for MinIO..."
             sleep 2
           done
 
+      # ✅ CREACIÓN CORRECTA DEL BUCKET (ÚNICA Y BIEN UBICADA)
       - name: Create MinIO bucket
         run: |
-          pip install awscli
           aws configure set aws_access_key_id admin
           aws configure set aws_secret_access_key password123
-          aws --endpoint-url http://localhost:9000 s3 mb s3://expedientes-siniestros || true
+          aws --endpoint-url http://127.0.0.1:9000 s3 mb s3://expedientes-siniestros || true
 
       - name: Run migrations
         env:
@@ -139,18 +138,10 @@ jobs:
           AWS_SECRET_ACCESS_KEY: password123
           AWS_STORAGE_BUCKET_NAME: expedientes-siniestros
           AWS_S3_ENDPOINT_URL: http://127.0.0.1:9000
-        run: |
-          python manage.py test --verbosity=2
+        run: python manage.py test --verbosity=2
 
       - name: Generate coverage report
-        env:
-          DATABASE_HOST: 127.0.0.1
-          DATABASE_PORT: 3306
-          DATABASE_NAME: polizas_test
-          DATABASE_USER: root
-          DATABASE_PASSWORD: UTPL2023
-        run: |
-          pytest --cov=apppolizas --cov-report=xml --cov-report=html
+        run: pytest --cov=apppolizas --cov-report=xml --cov-report=html
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
@@ -162,11 +153,9 @@ jobs:
     name: Security Check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -176,8 +165,7 @@ jobs:
           pip install safety bandit
 
       - name: Check dependencies for vulnerabilities
-        run: |
-          safety check --file requirements.txt || true
+        run: safety check --file requirements.txt || true
 
       - name: Run Bandit security linter
         run: |
@@ -190,14 +178,11 @@ jobs:
     needs: [lint, test]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v5
         with:
           context: .
           push: false

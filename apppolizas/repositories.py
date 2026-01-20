@@ -267,7 +267,7 @@ class BienRepository:
     @staticmethod
     def get_by_custodio(custodio_id):
         """Obtener todos los bienes asignados a un custodio"""
-        return Bien.objects.filter(custodio_id=custodio_id).order_by('codigo')
+        return Bien.objects.filter(custodio_id=custodio_id, estado_operativo='ACTIVO').order_by('codigo')
 
     @staticmethod
     def get_by_id(bien_id):

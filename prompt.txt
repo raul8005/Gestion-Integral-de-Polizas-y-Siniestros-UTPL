@@ -1,0 +1,91 @@
+Actúa como un desarrollador backend experto en Django y modelado de datos.
+
+Estoy desarrollando un sistema de seguros de bienes donde los bienes pueden ser reparados o reemplazados como resultado de un siniestro.
+
+📌 PROBLEMA ACTUAL
+
+Cuando un bien es marcado como REEMPLAZADO:
+
+Se crea un nuevo bien con nuevo código / serie / marca / modelo
+
+❌ El bien original permanece en la base de datos
+
+Como resultado:
+
+Ambos bienes aparecen en:
+
+Selectores
+
+Listas
+
+Búsquedas
+
+Esto provoca duplicación incorrecta
+
+🎯 OBJETIVO
+
+Corregir el flujo de reemplazo para que:
+
+El bien original NO quede duplicado
+
+El sistema refleje correctamente que el bien fue reemplazado
+
+Solo el bien válido aparezca en:
+
+Selectores
+
+Listados
+
+Búsquedas
+
+🔁 COMPORTAMIENTO REQUERIDO
+Cuando un bien es REEMPLAZADO:
+Opción preferida (recomendada):
+
+El bien original debe:
+
+Cambiar su estado a INACTIVO
+
+NO aparecer en selectores ni búsquedas
+
+El nuevo bien debe:
+
+Crearse como ACTIVO
+
+Ser el único visible y seleccionable
+
+El siniestro debe:
+
+Guardar referencia al nuevo bien
+
+Registrar que hubo un reemplazo
+
+🗃️ REQUISITOS TÉCNICOS
+
+Django ORM
+
+Uso de transacciones (transaction.atomic)
+
+Filtros correctos en queries:
+
+Mostrar solo bienes con estado = ACTIVO
+
+Evitar borrado físico si no es necesario
+
+📌 RESULTADO ESPERADO
+
+No existen bienes duplicados en el sistema
+
+El bien original reemplazado:
+
+Queda INACTIVO
+
+No aparece en selectores
+
+El nuevo bien:
+
+Es el único visible
+
+El flujo es consistente y mantenible
+
+Entrega la solución con explicación clara y ejemplos de implementación en Django.

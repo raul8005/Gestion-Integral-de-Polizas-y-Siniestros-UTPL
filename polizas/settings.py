@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -133,15 +133,15 @@ LOGIN_URL = '/'
 
 
 # Configuración para conectar con tu MinIO local
-AWS_ACCESS_KEY_ID = 'admin'
-AWS_SECRET_ACCESS_KEY = 'password123'
-AWS_STORAGE_BUCKET_NAME = 'expedientes-siniestros'
-AWS_S3_ENDPOINT_URL = 'http://127.0.0.1:9000' # La API de MinIO corre en el 9000
-AWS_S3_REGION_NAME = 'us-east-1' 
-AWS_S3_SIGNATURE_VERSION = 's3v4'
+#AWS_ACCESS_KEY_ID = 'admin'
+#AWS_SECRET_ACCESS_KEY = 'password123'
+#AWS_STORAGE_BUCKET_NAME = 'expedientes-siniestros'
+#AWS_S3_ENDPOINT_URL = 'http://127.0.0.1:9000' # La API de MinIO corre en el 9000
+#AWS_S3_REGION_NAME = 'us-east-1' 
+#AWS_S3_SIGNATURE_VERSION = 's3v4'
 
 # Para que MinIO no intente validar certificados SSL (ya que es local)
-AWS_S3_VERIFY = False 
+#AWS_S3_VERIFY = False 
 
 # Indicar a Django que use S3/MinIO para archivos MEDIA
 # DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
@@ -150,23 +150,25 @@ STORAGES = {
     "default": {
         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
         "OPTIONS": {
-            "access_key": "admin",
-            "secret_key": "password123",
-            "bucket_name": "expedientes-siniestros",
-            "endpoint_url": "http://127.0.0.1:9000",
+            "access_key": os.getenv("MINIO_ACCESS_KEY", "admin"),
+            "secret_key": os.getenv("MINIO_SECRET_KEY", "password123"),
+            "bucket_name": os.getenv("MINIO_BUCKET_NAME", "expedientes-siniestros"),
+            "endpoint_url": os.getenv("MINIO_ENDPOINT", "http://localhost:9000"),
             "region_name": "us-east-1",
             "use_ssl": False,
             "verify": False,
         },
     },
-
     "staticfiles": {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
 
+
 # URL para que el navegador pueda mostrar las fotos/PDFs
-MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
+#MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/'
+MEDIA_URL = f"{os.getenv('MINIO_ENDPOINT', 'http://localhost:9000')}/{os.getenv('MINIO_BUCKET_NAME', 'expedientes-siniestros')}/"
+
 
 # Fuerza a que no se añadan prefijos locales de Windows
 AWS_S3_FILE_OVERWRITE = False
