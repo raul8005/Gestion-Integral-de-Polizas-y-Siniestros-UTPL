@@ -1,16 +1,8 @@
 from django.shortcuts import get_object_or_404
 
-from .models import (
-    Bien,
-    DocumentoSiniestro,
-    Factura,
-    Finiquito,
-    Notificacion,
-    Poliza,
-    ResponsableCustodio,
-    Siniestro,
-    Usuario,
-)
+from .models import (Bien, DocumentoSiniestro, Factura, Finiquito,
+                     Notificacion, Poliza, ResponsableCustodio, Siniestro,
+                     Usuario)
 
 
 class UsuarioRepository:

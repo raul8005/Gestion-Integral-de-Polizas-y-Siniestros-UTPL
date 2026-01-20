@@ -76,9 +76,8 @@ jobs:
           MINIO_ROOT_PASSWORD: password123
         ports:
           - 9000:9000
-        # ✅ CORRECCIÓN: Se eliminó el 'options' con entrypoint conflictivo.
-        # MinIO ahora usa su comando interno 'server /data' por defecto.
-        #args: server /data 
+        # SE ELIMINÓ: entrypoint y args que causaban errores de sintaxis o de Docker.
+        # La imagen oficial ya sabe que debe ejecutar 'server /data' por defecto.
 
     steps:
       - name: Checkout code
@@ -92,7 +91,6 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          # Añadimos libmysqlclient-dev para que 'mysqlclient' pueda instalarse
           sudo apt-get install -y default-libmysqlclient-dev build-essential pkg-config libcairo2-dev
 
       - name: Install Python dependencies
