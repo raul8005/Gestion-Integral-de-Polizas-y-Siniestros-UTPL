@@ -5,7 +5,6 @@
 
 {% block admin_content %}
 <div class="container-fluid pb-4">
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold text-dark mb-1">Panel de Administración</h3>
@@ -18,7 +17,6 @@
         </div>
     </div>
 
-    <!-- Summary Cards -->
     <div class="row g-4 mb-4">
         <div class="col-md-6 col-lg-4">
             <div class="card border-0 shadow-sm h-100 bg-white">
@@ -58,13 +56,16 @@
                         <a href="{% url 'admin_usuarios' %}" class="btn btn-light text-primary fw-bold">
                             <i class="fas fa-user-plus me-2"></i> Crear Nuevo Usuario
                         </a>
-                    </div>
+                        
+                        <a href="{% url 'reporte_general_pdf' %}" class="btn btn-danger fw-bold border-white" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i> Generar Reporte General
+                        </a>
+                        </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- System Sections -->
     <div class="row g-4">
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4">

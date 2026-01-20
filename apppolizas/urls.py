@@ -12,7 +12,7 @@ from .views import (AdminUsuariosView, BienDetailApiView,
                     UsuarioCRUDView, buscar_bienes_ajax, buscar_custodios_ajax,
                     crear_factura, generar_pdf_factura, lista_facturas,
                     lista_notificaciones, logout_view,
-                    marcar_notificacion_leida)
+                    marcar_notificacion_leida, ReporteGeneralPDFView) 
 
 urlpatterns = [
     path("", LoginView.as_view(), name="login"),
@@ -27,6 +27,11 @@ urlpatterns = [
     ),
     # Admin
     path("administrador/usuarios/", AdminUsuariosView.as_view(), name="admin_usuarios"),
+    
+    # --- 2. NUEVA RUTA REPORTE PDF ---
+    path("administrador/reporte-general/", ReporteGeneralPDFView.as_view(), name="reporte_general_pdf"),
+    # ---------------------------------
+
     # API Usuarios
     path("api/usuarios/", UsuarioCRUDView.as_view(), name="usuarios_list_create"),
     path(

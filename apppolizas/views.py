@@ -3,6 +3,7 @@ from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from collections import Counter
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -1035,3 +1036,55 @@ def buscar_bienes_ajax(request):
             }
         )
     return JsonResponse({"results": results})
+
+
+class ReporteGeneralPDFView(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.rol != 'admin':
+            return redirect('dashboard_analista')
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        # 1. Obtener datos
+        polizas = PolizaService.listar_polizas()
+        siniestros = SiniestroService.listar_todos()
+
+        # --- 2. LÓGICA NUEVA: CALCULAR LA PÓLIZA MÁS USADA ---
+        poliza_top = "Ninguna"
+        cantidad_top = 0
+
+        if siniestros:
+            # Extraemos los números de póliza de cada siniestro
+            numeros_polizas = [s.poliza.numero_poliza for s in siniestros]
+            # Contamos cual se repite más
+            conteo = Counter(numeros_polizas).most_common(1)
+            
+            if conteo:
+                poliza_top = conteo[0][0] # El nombre (ej. POL-004)
+                cantidad_top = conteo[0][1] # La cantidad (ej. 3)
+        # -----------------------------------------------------
+
+        # 3. Definir el template y el contexto
+        template_path = 'administrador/reporte_general_pdf.html'
+        context = {
+            'polizas': polizas,
+            'siniestros': siniestros,
+            'usuario': request.user,
+            # Pasamos los datos nuevos al HTML:
+            'poliza_mas_siniestrada': poliza_top,
+            'total_reclamos_top': cantidad_top
+        }
+
+        # 4. Renderizar y crear el PDF
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'inline; filename="reporte_general.pdf"'
+
+        template = get_template(template_path)
+        html = template.render(context)
+
+        pisa_status = pisa.CreatePDF(html, dest=response)
+
+        if pisa_status.err:
+            return HttpResponse('Hubo un error al generar el reporte PDF <pre>' + html + '</pre>')
+        
+        return response

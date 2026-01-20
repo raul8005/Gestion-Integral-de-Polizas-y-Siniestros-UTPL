@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            color: #333;
+        }
+        h1 {
+            color: #0056b3;
+            text-align: center;
+            border-bottom: 2px solid #0056b3;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 20px;
+            color: #444;
+            border-bottom: 1px solid #ccc;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+            font-weight: bold;
+            padding: 8px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 10px;
+            color: #777;
+        }
+        .resumen {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Reporte General de Gestión</h1>
+    <p>Fecha de emisión: {% now "d/m/Y H:i" %}</p>
+
+    <div class="resumen">
+        <strong>Resumen Ejecutivo:</strong><br><br>
+        <table style="width: 100%; border: none;">
+            <tr style="border: none;">
+                <td style="border: none; padding: 2px;">Total Pólizas Registradas:</td>
+                <td style="border: none; padding: 2px;"><strong>{{ polizas.count }}</strong></td>
+            </tr>
+            <tr style="border: none;">
+                <td style="border: none; padding: 2px;">Total Siniestros Reportados:</td>
+                <td style="border: none; padding: 2px;"><strong>{{ siniestros.count }}</strong></td>
+            </tr>
+            <tr style="border: none;">
+                <td style="border: none; padding: 2px; color: #d9534f;">Póliza con mayor Siniestralidad:</td>
+                <td style="border: none; padding: 2px;">
+                    <strong>{{ poliza_mas_siniestrada }}</strong> 
+                    {% if total_reclamos_top > 0 %}
+                        <span style="color: #555; font-size: 11px;">({{ total_reclamos_top }} reclamos)</span>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    <h2>Listado de Pólizas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>N° Póliza</th>
+                <th>Cliente</th>
+                <th>Aseguradora</th>
+                <th>Estado</th>
+                <th>Vigencia Hasta</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for poliza in polizas %}
+            <tr>
+                <td>{{ poliza.numero_poliza }}</td>
+                <td>{{ poliza.usuario_gestor.username|default:"Sin asignar" }}</td>
+                <td>{{ poliza.aseguradora }}</td>
+                <td>
+                    {% if poliza.estado %} Activa {% else %} Inactiva {% endif %}
+                </td>
+                <td>{{ poliza.fecha_inicio }} - {{ poliza.fecha_fin }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No hay pólizas registradas.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Listado de Siniestros</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Póliza Afectada</th>
+                <th>Bien</th>
+                <th>Fecha Siniestro</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for siniestro in siniestros %}
+            <tr>
+                <td>{{ siniestro.id }}</td>
+                <td>{{ siniestro.poliza.numero_poliza }}</td>
+                <td>{{ siniestro.nombre_bien }}</td>
+                <td>{{ siniestro.fecha_siniestro }}</td>
+                <td>{{ siniestro.estado_tramite }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No hay siniestros registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Generado automáticamente por el Sistema de Gestión de Seguros.
+    </div>
+</body>
+</html>
